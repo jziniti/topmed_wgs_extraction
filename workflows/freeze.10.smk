@@ -9,6 +9,7 @@ STUDIES = ['CAMP',
            'PLCOPD'
 ]
 TARGETS = expand("tmp/{s_studyid}.nwds.txt", s_studyid=STUDIES)
+TARGETS.append('tmp/ALL.nwds.txt')
 
 rule: input: TARGETS
 

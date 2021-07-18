@@ -13,6 +13,7 @@ SDIAlias = Table('SDIALIAS', sapphire8_md, autoload=True, autoload_with=engine)
 
 alias_prefix = snakemake.params.get('alias_prefix', 'NWD')
 s_studyid = snakemake.params.get('s_studyid', None)
+if s_studyid == 'ALL': s_studyid = None
 if s_studyid:
     nwdids = pd.read_sql(session.query(SDIAlias).where(SDIAlias.c.aliasid.like(f'{alias_prefix}%')).filter(SDIAlias.c.keyid2==s_studyid).statement, engine)
 else:
