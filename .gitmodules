@@ -1,0 +1,3 @@
+[submodule "topmed_multiomics_qc"]
+	path = topmed_multiomics_qc
+	url = git@changit.bwh.harvard.edu:rejpz/topmed_multiomics_qc.git
