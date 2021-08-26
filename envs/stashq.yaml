@@ -1,0 +1,7 @@
+name: stashq-independence
+channels:
+    - conda-forge
+    - defaults
+    - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda
+dependencies:
+    - stashq==4.0.1
