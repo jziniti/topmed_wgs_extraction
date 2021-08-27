@@ -5,7 +5,9 @@ FREEZE10_IRC = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed
 LOWQUAL = '/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/TopMed/data/freezes/lowqual/'
 
 STUDIES = config['studies']
-TARGETS = expand('tmp/{s_studyid}.{chr}.extract.bcf', s_studyid=STUDIES, chr=CHROMOSOMES)
+TARGETS = expand('tmp/{s_studyid}.{chr}.PASS.bcf', s_studyid=STUDIES, chr=CHROMOSOMES)
+TARGETS += expand('tmp/{s_studyid}_king_duplicate.con', s_studyid=STUDIES)
+TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
 
 rule done: input: TARGETS
 
@@ -41,9 +43,9 @@ rule extract:
 
 rule setid:
     input:
-        stashq="tmp/{s_studyid}.stashq",
+        stashq="tmp/all.stashq.txt",
         vcf=rules.extract.output.bcf,
-    output: temp("tmp/{s_studyid}.{chr}.annotated.bcf")
+    output: bcf=temp("tmp/{s_studyid}.{chr}.annotated.bcf")
     conda: "../envs/bcftools.yaml"
     shell: "bcftools annotate --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT' -O b -o {output} {input}"
 
@@ -57,11 +59,16 @@ rule convert_to_plink:
     shell:
         """plink --bcf {input} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_chr{wildcards.chrom}"""
         
+rule merge_list:
+    input:
+    output: merge_list=temp('tmp/{s_studyid}.merge_list')
+    shell: "echo foo"
+
 rule merge:
     input:
-        expand("{s_studyid}_annotated_plink_chr{chr}.fam", chr=CHROMOSOMES),
-        expand("{s_studyid}_annotated_plink_chr{chr}.bim", chr=CHROMOSOMES),
-        expand("{s_studyid}_annotated_plink_chr{chr}.bed", chr=CHROMOSOMES),
+        expand("tmp/{{s_studyid}}_annotated_plink_chr{chr}.fam", chr=CHROMOSOMES),
+        expand("tmp/{{s_studyid}}_annotated_plink_chr{chr}.bim", chr=CHROMOSOMES),
+        expand("tmp/{{s_studyid}}_annotated_plink_chr{chr}.bed", chr=CHROMOSOMES),
         merge_list='tmp/{s_studyid}.merge_list',
     output:
         bed="tmp/{s_studyid}_annotated_plink_merged.bed",

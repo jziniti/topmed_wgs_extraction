@@ -1,3 +1,6 @@
 [submodule "topmed_multiomics_qc"]
 	path = topmed_multiomics_qc
 	url = git@changit.bwh.harvard.edu:rejpz/topmed_multiomics_qc.git
+[submodule "rnaseq_snp_concordance"]
+	path = rnaseq_snp_concordance
+	url = git@changit.bwh.harvard.edu:rejpz/rnaseq_snp_concordance.git
