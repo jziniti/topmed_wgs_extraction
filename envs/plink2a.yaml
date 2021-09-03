@@ -1,0 +1,8 @@
+channels:
+  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda
+  - bioconda
+  - defaults
+dependencies:
+  - plink2==v2.00a3LM.20210420 
+
+  
