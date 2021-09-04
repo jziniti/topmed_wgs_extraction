@@ -4,3 +4,6 @@
 [submodule "rnaseq_snp_concordance"]
 	path = rnaseq_snp_concordance
 	url = git@changit.bwh.harvard.edu:rejpz/rnaseq_snp_concordance.git
+[submodule "cdnm"]
+	path = cdnm
+	url = git@changit.bwh.harvard.edu:rejpz/cdnm.git

@@ -8,6 +8,7 @@ LOWQUAL = '/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/TopMed/data/f
 STUDIES = config['studies']
 TARGETS = expand('tmp/{s_studyid}.{chrom}.PASS.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES)
 TARGETS += expand('tmp/{s_studyid}_king_duplicate.con', s_studyid=STUDIES)
+TARGETS += expand('tmp/{s_studyid}_king.kin', s_studyid=STUDIES)
 TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
 
 BCF_PATH_FOR_STUDY = {
@@ -25,6 +26,15 @@ SOURCE_FREEZE_FOR_STUDY = {
 }
 
 rule done: input: TARGETS
+
+#module concordance:
+#    snakefile: "../rnaseq_snp_concordance/workflows/concordance_only.smk"
+#    config: config
+#
+#use rule generate_king_report from concordance with:
+#    output:
+#        html_file="tmp/king_results_summary.html",
+#        csv_file="tmp/king_results_summary.csv"
 
 rule stashq:
     input: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.{freeze}/manifests/nwdids.txt"
@@ -127,6 +137,21 @@ rule king:
     output: temp("tmp/{s_studyid}_king_duplicate.con")
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --fam {input.fam} --bim {input.bim} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
+
+rule concordance_vs_reference:
+    input:  
+        qbed=rules.merge.output.bed,
+        qbim=rules.merge.output.bim,
+        qfam=rules.merge.output.fam,
+        rbed=f"{config['known_good_reference']}.bed",
+        rbim=f"{config['known_good_reference']}.bim",
+        rfam=f"{config['known_good_reference']}.fam",
+    output: temp("tmp/{s_studyid}_king.kin"),
+    conda: "../envs/king.yaml"
+    params:
+        Q="tmp/{s_studyid}_annotated_plink_merged", ## FIXME: This is a dirty kluge
+        R=f"{config['known_good_reference']}",
+    shell: "king -b {params.Q},{params.R} --prefix {params.Q} --kinship"
 
 #rule variant_qc:
 #    input: "tmp/{s_studyid}.annotate.vcf.gz"
