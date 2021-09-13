@@ -3,13 +3,16 @@ CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "1
 FREEZE9B = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.9b/minDP10/freeze.9b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10 = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/minDP10/freeze.10a.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10_IRC = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10b.irc/minDP10/freeze.10b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
-LOWQUAL = '/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/TopMed/data/freezes/lowqual/'
+LOWQUAL = '/d/tmp2/regeps/regep00/studies/COPDGene/data/freezes/lowqual/'
+## /proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/TopMed/data/freezes/lowqual/'
+
 
 STUDIES = config['studies']
 TARGETS = expand('tmp/{s_studyid}.{chrom}.PASS.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES)
-TARGETS += expand('tmp/{s_studyid}_king_duplicate.con', s_studyid=STUDIES)
-TARGETS += expand('tmp/{s_studyid}_king.kin', s_studyid=STUDIES)
+## TARGETS += expand('tmp/{s_studyid}_king_duplicate.con', s_studyid=STUDIES)
+TARGETS += expand('tmp/{s_studyid}_king.kin0', s_studyid=STUDIES)
 TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
+TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
 
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
@@ -27,6 +30,13 @@ SOURCE_FREEZE_FOR_STUDY = {
 
 rule done: input: TARGETS
 
+## extracting stuff from the lowqual dataset
+## ls -1 /d/tmp2/regeps/regep00/studies/COPDGene/data/freezes/lowqual/*/*.src.cram | cut -d "/" -f 12 | cut -d "." -f 1 | sort | uniq > tmp/lowqual.nwdids.txt
+## stashq alias `cat tmp/lowqual.nwdids.txt` > tmp/lowqual.stashq.txt
+#$ cut -d " " -f 5  tmp/lowqual.stashq.txt  | sort | uniq -c
+#    233 CAMP
+#    104 CRA
+
 #module concordance:
 #    snakefile: "../rnaseq_snp_concordance/workflows/concordance_only.smk"
 #    config: config
@@ -38,12 +48,18 @@ rule done: input: TARGETS
 
 rule stashq:
     input: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.{freeze}/manifests/nwdids.txt"
-    output: temp("tmp/{freeze}.stashq.txt")
+    output: temp("tmp/wgs.{freeze}.stashq.txt")
     conda: "../envs/stashq.yaml"
     shell: "stashq alias `cat {input}` > {output}"
 
+rule stashq_reference:
+    input: lambda w: f"{config[w.s_studyid]['known_good_reference']}.fam"
+    output: temp("tmp/{s_studyid}_reference.stashq.txt")
+    conda: "../envs/stashq.yaml"
+    shell: "stashq alias `awk '{{print $2}}' {input}` > {output}"
+
 rule get_study_ids:
-    input: lambda w: f"tmp/{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}.stashq.txt"
+    input: lambda w: f"tmp/wgs.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}.stashq.txt"
     output: nwdids=temp("tmp/{s_studyid}.nwds.txt")
     conda: "../envs/sapphire8.yaml"
     shell: "grep {wildcards.s_studyid} {input} | cut -d \" \" -f 1 > {output}"
@@ -143,14 +159,14 @@ rule concordance_vs_reference:
         qbed=rules.merge.output.bed,
         qbim=rules.merge.output.bim,
         qfam=rules.merge.output.fam,
-        rbed=f"{config['known_good_reference']}.bed",
-        rbim=f"{config['known_good_reference']}.bim",
-        rfam=f"{config['known_good_reference']}.fam",
-    output: temp("tmp/{s_studyid}_king.kin"),
+        rbed=lambda w: f"{config[w.s_studyid]['known_good_reference']}.bed",
+        rbim=lambda w: f"{config[w.s_studyid]['known_good_reference']}.bim",
+        rfam=lambda w: f"{config[w.s_studyid]['known_good_reference']}.fam",
+    output: temp("tmp/{s_studyid}_king.kin0"),
     conda: "../envs/king.yaml"
     params:
-        Q="tmp/{s_studyid}_annotated_plink_merged", ## FIXME: This is a dirty kluge
-        R=f"{config['known_good_reference']}",
+        Q="tmp/{s_studyid}_king",
+        R=lambda w: "{config[w.s_studyid]['known_good_reference']}",
     shell: "king -b {params.Q},{params.R} --prefix {params.Q} --kinship"
 
 #rule variant_qc:

@@ -7,3 +7,6 @@
 [submodule "cdnm"]
 	path = cdnm
 	url = git@changit.bwh.harvard.edu:rejpz/cdnm.git
+[submodule "850K_qc_pipeline"]
+	path = 850K_qc_pipeline
+	url = git@changit.bwh.harvard.edu:rejpz/850K_qc_pipeline.git
