@@ -18,6 +18,8 @@ rule reaka_notebook:
         lmiss_file = f'{path}/tmp/{s_studyid}_annotated_plink_merged.lmiss',
         kin0_file = f'{path}/tmp/{s_studyid}_king.kin0'
     output: "tmp/flags_reaka.txt"
+    log:
+        notebook="notebook_logs/reaka.ipynb"
     params:
         i_miss_threshold=0.1,
         l_miss_threshold=0.01,
@@ -36,6 +38,8 @@ rule remra_notebook:
         lmiss_file = f'{path}/tmp/{s_studyid}_annotated_plink_merged.lmiss',
         kin0_file = f'{path}/tmp/{s_studyid}_king.kin0',
     output: "tmp/flags_remra.txt"
+    log:
+        notebook="notebook_logs/remra.ipynb"
     params:
         i_miss_threshold=0.1,
         l_miss_threshold=0.01,
