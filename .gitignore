@@ -2,3 +2,4 @@
 .snakemake
 logs
 tmp
+notebooks/.ipynb_checkpoints
