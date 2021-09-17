@@ -23,6 +23,7 @@ rule reaka_notebook:
     params:
         i_miss_threshold=0.1,
         l_miss_threshold=0.01,
+    conda: "../envs/cdnm-jupyter-python-3.7.6.yaml"
     notebook: "../notebooks/GECOPDNotebook1.ipynb"
 
 rule remra_notebook:
@@ -43,4 +44,5 @@ rule remra_notebook:
     params:
         i_miss_threshold=0.1,
         l_miss_threshold=0.01,
-    notebook: "../notebooks/GECOPDNotebook.ipynb"
+    conda: "../envs/cdnm-jupyter-python-3.7.6.yaml"
+    notebook: "../notebooks/GECOPDnotebook.ipynb"
