@@ -22,6 +22,6 @@ rule reaka_notebook:
         Kinship=0.354,
         SNPSEX=0,
         P=0.000001
-	F=0.2
+	f_bound=0.2
     conda: "../envs/cdnm-jupyter-python-3.7.6.yaml"
     notebook: "../notebooks/GECOPDNotebook1.ipynb"
