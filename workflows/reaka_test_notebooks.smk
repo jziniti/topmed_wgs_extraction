@@ -2,7 +2,7 @@ rule reaka_notebook:
     input:
         pop_file = TMP/"{s_studyid}_annotated_plink_merged.fam",
         chrom_file = TMP/"{s_studyid}_annotated_plink_merged.bim",
-        kin_file = TMP/'tmp/{s_studyid}_king_duplicate.con',
+        kin_file = TMP/'{s_studyid}_king_duplicate.con',
         sexcheck_file= TMP/'{s_studyid}_annotated_plink_merged.sexcheck',
         hwe_file = TMP/'{s_studyid}_annotated_plink_merged.hwe',
         frq_file = TMP/'{s_studyid}_annotated_plink_merged.frq',
