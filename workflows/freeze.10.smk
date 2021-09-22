@@ -5,10 +5,19 @@ FREEZE10 = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/dat
 FREEZE10_IRC = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10b.irc/minDP10/freeze.10b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 
 TMP = Path('tmp')
+NOTEBOOKS = Path('notebook_logs')
+FLAGS = Path('flags')
 
 STUDIES = sorted(config.keys())
 TARGETS = expand('tmp/{s_studyid}.{chrom}.PASS.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES)
-# TARGETS += expand('tmp/{s_studyid}_king.kin0', s_studyid=STUDIES)
+for s_studyid in STUDIES:
+    if config[s_studyid].get('run_reference_concordance', False):
+        TARGETS.append(f'tmp/{s_studyid}_king.kin0')
+    if config[s_studyid].get('run_methylation_concordance', False):
+        TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
+    if config[s_studyid].get('run_qc_notebook', False):
+        TARGETS.append(FLAGS/f'{s_studyid}_samples.csv')
+        TARGETS.append(FLAGS/f'{s_studyid}_markers.csv')
 TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
 TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
 TARGETS += expand("tmp/{s_studyid}_king_duplicate.con", s_studyid=STUDIES)
@@ -35,8 +44,10 @@ SOURCE_FREEZE_FOR_STUDY = {
 }
 
 include: "gwas_qc_pipeline.smk"
-# include: "methylation_ref_concordance.smk"
-# include: "test_notebooks.smk"
+include: "methylation_ref_concordance.smk"
+include: "reaka_test_notebooks.smk"
+include: "multiomics.smk"
+include: "plate103.smk"
 
 rule done: input: TARGETS
 
