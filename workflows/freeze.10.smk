@@ -3,48 +3,42 @@ CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "1
 FREEZE9B = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.9b/minDP10/freeze.9b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10 = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/minDP10/freeze.10a.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10_IRC = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10b.irc/minDP10/freeze.10b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
-LOWQUAL = '/d/tmp2/regeps/regep00/studies/COPDGene/data/freezes/lowqual/'
-## /proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/TopMed/data/freezes/lowqual/'
 
+TMP = Path('tmp')
 
-STUDIES = config['studies']
+STUDIES = sorted(config.keys())
 TARGETS = expand('tmp/{s_studyid}.{chrom}.PASS.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES)
-## TARGETS += expand('tmp/{s_studyid}_king_duplicate.con', s_studyid=STUDIES)
-TARGETS += expand('tmp/{s_studyid}_king.kin0', s_studyid=STUDIES)
+# TARGETS += expand('tmp/{s_studyid}_king.kin0', s_studyid=STUDIES)
 TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
 TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
+TARGETS += expand("tmp/{s_studyid}_king_duplicate.con", s_studyid=STUDIES)
+TARGETS += expand(TMP/'{s_studyid}_annotated_plink_merged.{suffix}', s_studyid=STUDIES, suffix=('frq', 'imiss', 'lmiss', 'het', 'hwe', 'sexcheck'))
 
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
     'EOCOPD': FREEZE10_IRC,
+    'ECLPSE': FREEZE10_IRC,
     'GLAXO':  FREEZE10_IRC,
     'PLCOPD': FREEZE10_IRC,
+    'LTCOPD': FREEZE10_IRC,
+    'LTRC': FREEZE10_IRC,
 }
 
 SOURCE_FREEZE_FOR_STUDY = {
     ## 'GECOPD': '10a.irc',
     'EOCOPD': '10a.irc',
+    'ECLPSE': '10a.irc',
     'GLAXO':  '10a.irc',
     'PLCOPD': '10a.irc',
+    'LTCOPD': '10a.irc',
+    'LTRC': '10a.irc',
 }
 
+include: "gwas_qc_pipeline.smk"
+# include: "methylation_ref_concordance.smk"
+# include: "test_notebooks.smk"
+
 rule done: input: TARGETS
-
-## extracting stuff from the lowqual dataset
-## ls -1 /d/tmp2/regeps/regep00/studies/COPDGene/data/freezes/lowqual/*/*.src.cram | cut -d "/" -f 12 | cut -d "." -f 1 | sort | uniq > tmp/lowqual.nwdids.txt
-## stashq alias `cat tmp/lowqual.nwdids.txt` > tmp/lowqual.stashq.txt
-#$ cut -d " " -f 5  tmp/lowqual.stashq.txt  | sort | uniq -c
-#    233 CAMP
-#    104 CRA
-
-#module concordance:
-#    snakefile: "../rnaseq_snp_concordance/workflows/concordance_only.smk"
-#    config: config
-#
-#use rule generate_king_report from concordance with:
-#    output:
-#        html_file="tmp/king_results_summary.html",
-#        csv_file="tmp/king_results_summary.csv"
 
 rule stashq:
     input: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.{freeze}/manifests/nwdids.txt"
@@ -83,11 +77,11 @@ rule extract:
     conda: "../envs/bcftools.yaml"
     shell: "bcftools view -S {input.samples} -i 'FILTER=\"PASS\"' -c 1 -O b -m2 -M2 --force-samples --types snps {input.bcf} -o {output.bcf}"
 
-rule plink_freq:
-    input: bcf="tmp/{s_studyid}.{chrom}.PASS.bcf"
-    output: frq=temp("tmp/{s_studyid}.{chrom}.PASS.afreq")
-    conda: "../envs/plink2a.yaml"
-    shell: "plink2 --bcf {input.bcf} --out tmp/{wildcards.s_studyid}.{wildcards.chrom}.PASS --freq"
+#rule plink_freq:
+#    input: bcf="tmp/{s_studyid}.{chrom}.PASS.bcf"
+#    output: frq=temp("tmp/{s_studyid}.{chrom}.PASS.afreq")
+#    conda: "../envs/plink2a.yaml"
+#    shell: "plink2 --bcf {input.bcf} --out tmp/{wildcards.s_studyid}.{wildcards.chrom}.PASS --freq"
     
 rule setid:
     input:
@@ -124,11 +118,11 @@ rule merge:
         bed="tmp/{s_studyid}_annotated_plink_merged.bed",
         bim="tmp/{s_studyid}_annotated_plink_merged.bim",
         fam="tmp/{s_studyid}_annotated_plink_merged.fam"
-    conda: "../envs/plink.yaml"
+    conda: "../envs/plink2a.yaml"
     params:
         geno=float(config.get('geno_filter', 0.02)),
         maf=float(config.get('maf_filter', 0.0001)),
-    shell: """plink --merge-list {input.merge_list} --geno {params.geno} --maf {params.maf} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_merged"""
+    shell: """plink --pmerge-list {input.merge_list} --geno {params.geno} --maf {params.maf} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_merged"""
 
 rule get_pedigree:
     input: fam=rules.merge.output.fam
@@ -136,14 +130,14 @@ rule get_pedigree:
     conda: "../envs/r.yaml"
     script: "../scripts/R/put_in_pedigree.R"
     
-rule sex_check:
-    input:
-        bed=rules.merge.output.bed,
-        bim=rules.merge.output.bim,
-        fam=rules.merge.output.fam,
-    output: temp("tmp/{s_studyid}.sexcheck")
-    conda: "../envs/plink.yaml"
-    shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --check-sex --out tmp/{wildcards.s_studyid}"
+#rule sex_check:
+#    input:
+#        bed=rules.merge.output.bed,
+#        bim=rules.merge.output.bim,
+#        fam=rules.merge.output.fam,
+#    output: temp("tmp/{s_studyid}.sexcheck")
+#    conda: "../envs/plink.yaml"
+#    shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --check-sex --out tmp/{wildcards.s_studyid}"
 
 rule king:
     input:
