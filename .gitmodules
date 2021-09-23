@@ -10,3 +10,6 @@
 [submodule "850K_qc_pipeline"]
 	path = 850K_qc_pipeline
 	url = git@changit.bwh.harvard.edu:rejpz/850K_qc_pipeline.git
+[submodule "cdnm_gwas_pipeline"]
+	path = cdnm_gwas_pipeline
+	url = git@changit.bwh.harvard.edu:rejpz/cdnm_gwas_pipeline.git
