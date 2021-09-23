@@ -1,0 +1,11 @@
+package:
+  name: topmed_wgs_extraction
+  version: "0.1.0"
+
+build:
+  number: 1
+
+about:
+  home: https://changit.bwh.harvard.edu/rejpz/topmed_wgs_extraction
+  license: GPL
+  summary: Freeze.10 extraction and QC
