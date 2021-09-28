@@ -1,4 +1,4 @@
-CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X"]
+CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "25"]
 
 FREEZE9B = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.9b/minDP10/freeze.9b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10 = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/minDP10/freeze.10a.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
@@ -9,19 +9,25 @@ NOTEBOOKS = Path('notebook_logs')
 FLAGS = Path('flags')
 
 STUDIES = sorted(config.keys())
-TARGETS = expand('tmp/{s_studyid}.{chrom}.PASS.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES)
+TARGETS = []
 for s_studyid in STUDIES:
-    if config[s_studyid].get('run_reference_concordance', False):
-        TARGETS.append(f'tmp/{s_studyid}_king.kin0')
-    if config[s_studyid].get('run_methylation_concordance', False):
-        TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
+    #if config[s_studyid].get('run_reference_concordance', False):
+    #    TARGETS.append(f'tmp/{s_studyid}_reference_concordance.con')
+    #if config[s_studyid].get('run_methylation_concordance', False):
+    #    TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
     if config[s_studyid].get('run_qc_notebook', False):
         TARGETS.append(FLAGS/f'{s_studyid}_samples.csv')
         TARGETS.append(FLAGS/f'{s_studyid}_markers.csv')
-TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
-TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
-TARGETS += expand("tmp/{s_studyid}_king_duplicate.con", s_studyid=STUDIES)
-TARGETS += expand(TMP/'{s_studyid}_annotated_plink_merged.{suffix}', s_studyid=STUDIES, suffix=('frq', 'imiss', 'lmiss', 'het', 'hwe', 'sexcheck'))
+    if config[s_studyid].get('run_pca_pipeline', False):
+        TARGETS.append(TMP/f'{s_studyid}_ready_for_umich.done')
+    #if config[s_studyid].get('run_rna_concordance', False):
+    #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
+    #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
+# TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
+# TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
+# TARGETS += expand("tmp/{s_studyid}_king_duplicate.con", s_studyid=STUDIES)
+# TARGETS += expand(TMP/'{s_studyid}_annotated_plink_merged.{suffix}', s_studyid=STUDIES, suffix=('frq', 'imiss', 'lmiss', 'het', 'hwe', 'sexcheck'))
+
 
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
@@ -43,11 +49,15 @@ SOURCE_FREEZE_FOR_STUDY = {
     'LTRC': '10a.irc',
 }
 
+### Modules we will be using
 include: "gwas_qc_pipeline.smk"
 include: "methylation_ref_concordance.smk"
 include: "reaka_test_notebooks.smk"
 include: "multiomics.smk"
 include: "plate103.smk"
+#include: "rnaseq_concordance.smk"
+include: "cdnm_pca_pipeline_shim.smk"
+include: "duplicate_vs_reference.smk"
 
 rule done: input: TARGETS
 
@@ -88,29 +98,81 @@ rule extract:
     conda: "../envs/bcftools.yaml"
     shell: "bcftools view -S {input.samples} -i 'FILTER=\"PASS\"' -c 1 -O b -m2 -M2 --force-samples --types snps {input.bcf} -o {output.bcf}"
 
-#rule plink_freq:
-#    input: bcf="tmp/{s_studyid}.{chrom}.PASS.bcf"
-#    output: frq=temp("tmp/{s_studyid}.{chrom}.PASS.afreq")
-#    conda: "../envs/plink2a.yaml"
-#    shell: "plink2 --bcf {input.bcf} --out tmp/{wildcards.s_studyid}.{wildcards.chrom}.PASS --freq"
-    
 rule setid:
     input:
         vcf=rules.extract.output.bcf,
     output: bcf=temp("tmp/{s_studyid}.{chrom}.annotated.bcf")
     conda: "../envs/bcftools.yaml"
-    shell: "bcftools annotate --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT' -O b -o {output} {input.vcf}"
+    shell: "bcftools annotate --set-id '%CHROM:%POS:%REF:%FIRST_ALT' -O b -o {output} {input.vcf}"
 
 rule convert_to_plink:
     input: bcf=rules.setid.output.bcf
     output:
-        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.bed"),
-        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.bim"),
-        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.fam"),
+        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,\d+}.bed"),
+        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,\d+}.bim"),
+        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,\d+}.fam"),
     conda: "../envs/plink2a.yaml"
     shell:
         """plink --allow-extra-chr  --bcf {input} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_chr{wildcards.chrom}"""
         
+rule chrX_convert_to_plink:
+    input: bcf=rules.setid.output.bcf
+    output:
+        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,X}_wPAR.bed"),
+        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,X}_wPAR.bim"),
+        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,X}_wPAR.fam"),
+    conda: "../envs/plink2a.yaml"
+    shell:
+        """plink --allow-extra-chr  --bcf {input} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_chr{wildcards.chrom}_wPAR"""
+
+rule make_PAR_list:
+    input:
+        bim="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bim",
+    output:
+        "tmp/{s_studyid}_par.txt"
+    params:
+        par1_start=10001,
+        par1_end=2781479,
+        par2_start=155701383,
+        par2_end=156030895,
+    shell:
+        "awk '($3 >= {params.par1_start} && $3 <= {params.par1_end}) || ($3 >= {params.par2_start} && $3 <= {params.par2_end}) {{print $2}}' {input} > {output}"
+
+rule relabel_PAR_variants:
+    input:
+        "tmp/{s_studyid}_par.txt"
+    output:
+        "tmp/{s_studyid}_par_newchr.txt"
+    shell:
+        "awk '{{print \"25\\t\",$1}}' {input} > {output}"
+
+rule chrX_remove_PAR:
+    input:
+        bed="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bed",
+        bim="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bim",
+        fam="tmp/{s_studyid}_annotated_plink_chrX_wPAR.fam",
+        exclude="tmp/{s_studyid}_par.txt"
+    output:
+        bed=temp("tmp/{s_studyid}_annotated_plink_chrX.bed"),
+        bim=temp("tmp/{s_studyid}_annotated_plink_chrX.bim"),
+        fam=temp("tmp/{s_studyid}_annotated_plink_chrX.fam"),
+    conda: "../envs/plink2a.yaml"
+    shell: "../scripts/bash/chrX_remove_PAR.sh {input.bed} {output.bed} {input.exclude}"
+
+rule chrX_extract_and_annotate_PAR:
+    input:
+        bed="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bed",
+        bim="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bim",
+        fam="tmp/{s_studyid}_annotated_plink_chrX_wPAR.fam",
+        extract="tmp/{s_studyid}_par.txt",
+        relabeled="tmp/{s_studyid}_par_newchr.txt",
+    output:
+        parbed=temp("tmp/{s_studyid}_annotated_plink_chr25.bed"),
+        parbim=temp("tmp/{s_studyid}_annotated_plink_chr25.bim"),
+        parfam=temp("tmp/{s_studyid}_annotated_plink_chr25.fam"),
+    conda: "../envs/plink2a.yaml"
+    shell: "../scripts/bash/chrX_extract_PAR.sh {input.bed} {output.bed} {input.extract} {input.relabeled}"
+
 rule merge_list:
     input:
     output: merge_list=temp('tmp/{s_studyid}.merge_list')
@@ -135,22 +197,23 @@ rule merge:
         maf=float(config.get('maf_filter', 0.0001)),
     shell: """plink --pmerge-list {input.merge_list} --geno {params.geno} --maf {params.maf} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_merged"""
 
+rule convert_to_vcf:
+    input:
+        bed="tmp/{s_studyid}_annotated_plink_merged.bed",
+        bim="tmp/{s_studyid}_annotated_plink_merged.bim",
+        fam="tmp/{s_studyid}_annotated_plink_merged.fam"
+    output:
+        bed="tmp/{s_studyid}_annotated_plink_merged.vcf.gz",
+    conda: "../envs/plink2a.yaml"
+    shell: """plink --bfile tmp/{wildcards.s_studyid}_annotated_plink_merged --out tmp/{wildcards.s_studyid}_annotated_plink_merged --recode vcf bgz"""
+
 rule get_pedigree:
     input: fam=rules.merge.output.fam
     output: "tmp/{s_studyid}_annotated_plink_merged_ped.fam"
     conda: "../envs/r.yaml"
     script: "../scripts/R/put_in_pedigree.R"
     
-#rule sex_check:
-#    input:
-#        bed=rules.merge.output.bed,
-#        bim=rules.merge.output.bim,
-#        fam=rules.merge.output.fam,
-#    output: temp("tmp/{s_studyid}.sexcheck")
-#    conda: "../envs/plink.yaml"
-#    shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --check-sex --out tmp/{wildcards.s_studyid}"
-
-rule king:
+rule king_duplicate_check:
     input:
         bed=rules.merge.output.bed,
         bim=rules.merge.output.bim,
@@ -159,38 +222,20 @@ rule king:
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --fam {input.fam} --bim {input.bim} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
 
-rule concordance_vs_reference:
-    input:  
-        qbed=rules.merge.output.bed,
-        qbim=rules.merge.output.bim,
-        qfam=rules.merge.output.fam,
-        rbed=lambda w: f"{config[w.s_studyid]['known_good_reference']}.bed",
-        rbim=lambda w: f"{config[w.s_studyid]['known_good_reference']}.bim",
-        rfam=lambda w: f"{config[w.s_studyid]['known_good_reference']}.fam",
-    output: temp("tmp/{s_studyid}_king.kin0"),
-    conda: "../envs/king.yaml"
-    params:
-        Q="tmp/{s_studyid}_king",
-        R=lambda w: "{config[w.s_studyid]['known_good_reference']}",
-    shell: "king -b {params.Q},{params.R} --prefix {params.Q} --kinship"
-
-#rule variant_qc:
-#    input: "tmp/{s_studyid}.annotate.vcf.gz"
-##    output: temp("tmp/{s_studyid}.variants.keep")
-#    conda: "../envs/bcftools.yaml"
-#    shell: "bcftools"
-#
-#rule sample_qc:
-#    input: "tmp/{s_studyid}.annotate.vcf.gz"
-#    output: temp("tmp/{s_studyid}.samples.keep")
-#    conda: "../envs/bcftools.yaml"
-#    shell: "bcftools"
-#
-#rule filter:
-#    input:
-#        "tmp/{s_studyid}.annotate.vcf.gz",
-#        "tmp/{s_studyid}.samples.keep",
-#        "tmp/{s_studyid}.variants.keep",
-#    output: temp("{s_studyid}.bed")
-#    conda: "../envs/bcftools.yaml"
-#    shell: "bcftools"
+rule filter:
+    input:
+        bed="tmp/{s_studyid}.annotated_plink_merged.bed",
+        bim="tmp/{s_studyid}.annotated_plink_merged.bim",
+        fam="tmp/{s_studyid}.annotated_plink_merged.fam",
+        rem="flags/{s_studyid}_samples.csv",
+        exclude="flages/{s_studyid}_markers.csv",
+    output:
+        bed="output_freezes/{s_study}/{s_studyid}_freeze.10.bed",
+        bim="output_freezes/{s_study}/{s_studyid}_freeze.10.bim",
+        fam="output_freezes/{s_study}/{s_studyid}_freeze.10.fam",
+    conda: "../envs/plink2a.yaml"
+    shell: "plink --bfile  tmp/{wildcards.s_studyid}.annotated_plink_merged.bed \
+                  --out output_freezes/{wildcards.s_study}/{wildcards.s_studyid}_freeze.10 \
+                  --remove {input.rem} \
+                  --exclude {input.exclude} \
+                  --make-bed"

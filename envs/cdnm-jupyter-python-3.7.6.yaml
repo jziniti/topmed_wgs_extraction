@@ -5,6 +5,7 @@ channels:
   - eumetsat
   - defaults
 dependencies:
+  - matplotlib==3.4.3
   - pandas==1.2.4
   - jupyterlab==3.0.16
   - oracle-instantclient==12.2.0.1.0
@@ -12,4 +13,4 @@ dependencies:
   - cx_oracle==8.2.0
   - xlrd==2.0.1
   - openpyxl==3.0.7
-  
+  - matplotlib==3.4.3

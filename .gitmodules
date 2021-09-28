@@ -13,3 +13,9 @@
 [submodule "cdnm_gwas_pipeline"]
 	path = cdnm_gwas_pipeline
 	url = git@changit.bwh.harvard.edu:rejpz/cdnm_gwas_pipeline.git
+[submodule "cdnm_pca_pipeline"]
+	path = cdnm_pca_pipeline
+	url = git@changit.bwh.harvard.edu:rejpz/cdnm_pca_pipeline.git
+[submodule "king"]
+	path = king
+	url = git@changit.bwh.harvard.edu:rejpz/king.git
