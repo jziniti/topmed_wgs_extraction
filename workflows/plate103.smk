@@ -3,7 +3,7 @@ TARGETS.append('plate103/ANNOTATED_MANIFEST.csv')
 
 rule: input: TARGETS
 
-rule filter_annotated_manifest:
+rule p103_filter_annotated_manifest:
     input:
         manifest="multiomics/GECOPD/ANNOTATED_MANIFEST.csv",
         plate_manifests=['plate103/PL-01007365_v2.csv', 'plate103/PL-01007396_v2.csv', 'plate103/PL-01007962_v2.csv'],

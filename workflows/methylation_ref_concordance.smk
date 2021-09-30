@@ -8,16 +8,23 @@ rule: input: [TMP/'GECOPD_methylation_unified.kin', TMP/'GECOPD_methylation_free
 
 N_BATCHES = config['GECOPD']['batch_count']
 
+rule convert_chrpos:
+    input:
+        bim=TMP/"{s_studyid}_annotated_plink_merged.bim"
+    output:
+        bim=temp(TMP/"{s_studyid}_convert_chrpos.bim")
+    shell: "awk '{{print $1,$1\":\"$4,$3,$4,$5,$6}}' {input.bim} > {output.bim}"
+
 rule convert_to_pedmap:
     input:
-        bed="tmp/GECOPD_annotated_plink_merged.bed",
-        bim="tmp/GECOPD_annotated_plink_merged.bim",
-        fam="tmp/GECOPD_annotated_plink_merged.fam",
-        extract="tmp/extract.txt"
+        bed=TMP/"{s_studyid}_annotated_plink_merged.bed",
+        bim=TMP/"{s_studyid}_annotated_convert_chrpos.bim",
+        fam=TMP/"{s_studyid}_annotated_plink_merged.fam",
+        extract=TMP/"{s_studyid}_extract.txt"
     output:
-        ped="tmp/GECOPD_annotated_plink_merged.ped",
-        map="tmp/GECOPD_annotated_plink_merged.map",
-    params: out="tmp/GECOPD_annotated_plink_merged",
+        ped=TMP/"{s_studyid}_annotated_plink_merged.ped",
+        map=TMP/"{s_studyid}_annotated_plink_merged.map",
+    params: out="tmp/{s_studyid}_annotated_plink_merged",
     conda: "../envs/plink.yaml"
     shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --out {params.out} --extract {input.extract} --recode"
 
@@ -26,6 +33,9 @@ module methylation_ref_concordance:
     config: config['GECOPD']
 
 use rule * from methylation_ref_concordance as mrc_* 
+
+use rule write_extract_file from methylation_ref_concordance as mrc_write_extract_file with:
+    output: temp(TMP/'{s_studyid}_extract.txt')
 
 use rule compare_genotypes from methylation_ref_concordance as mrc_compare_genotypes with:
     input:
