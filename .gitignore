@@ -4,3 +4,4 @@ logs
 tmp
 notebooks/.ipynb_checkpoints
 notebook_logs/
+notebooks/flags

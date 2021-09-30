@@ -1,4 +1,4 @@
-CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "25"]
+CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X"]
 
 FREEZE9B = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.9b/minDP10/freeze.9b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10 = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/minDP10/freeze.10a.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
@@ -108,71 +108,13 @@ rule setid:
 rule convert_to_plink:
     input: bcf=rules.setid.output.bcf
     output:
-        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,\d+}.bed"),
-        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,\d+}.bim"),
-        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,\d+}.fam"),
+        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.bed"),
+        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.bim"),
+        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.fam"),
     conda: "../envs/plink2a.yaml"
     shell:
         """plink --allow-extra-chr  --bcf {input} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_chr{wildcards.chrom}"""
         
-rule chrX_convert_to_plink:
-    input: bcf=rules.setid.output.bcf
-    output:
-        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,X}_wPAR.bed"),
-        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,X}_wPAR.bim"),
-        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom,X}_wPAR.fam"),
-    conda: "../envs/plink2a.yaml"
-    shell:
-        """plink --allow-extra-chr  --bcf {input} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_chr{wildcards.chrom}_wPAR"""
-
-rule make_PAR_list:
-    input:
-        bim="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bim",
-    output:
-        "tmp/{s_studyid}_par.txt"
-    params:
-        par1_start=10001,
-        par1_end=2781479,
-        par2_start=155701383,
-        par2_end=156030895,
-    shell:
-        "awk '($3 >= {params.par1_start} && $3 <= {params.par1_end}) || ($3 >= {params.par2_start} && $3 <= {params.par2_end}) {{print $2}}' {input} > {output}"
-
-rule relabel_PAR_variants:
-    input:
-        "tmp/{s_studyid}_par.txt"
-    output:
-        "tmp/{s_studyid}_par_newchr.txt"
-    shell:
-        "awk '{{print \"25\\t\",$1}}' {input} > {output}"
-
-rule chrX_remove_PAR:
-    input:
-        bed="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bed",
-        bim="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bim",
-        fam="tmp/{s_studyid}_annotated_plink_chrX_wPAR.fam",
-        exclude="tmp/{s_studyid}_par.txt"
-    output:
-        bed=temp("tmp/{s_studyid}_annotated_plink_chrX.bed"),
-        bim=temp("tmp/{s_studyid}_annotated_plink_chrX.bim"),
-        fam=temp("tmp/{s_studyid}_annotated_plink_chrX.fam"),
-    conda: "../envs/plink2a.yaml"
-    shell: "../scripts/bash/chrX_remove_PAR.sh {input.bed} {output.bed} {input.exclude}"
-
-rule chrX_extract_and_annotate_PAR:
-    input:
-        bed="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bed",
-        bim="tmp/{s_studyid}_annotated_plink_chrX_wPAR.bim",
-        fam="tmp/{s_studyid}_annotated_plink_chrX_wPAR.fam",
-        extract="tmp/{s_studyid}_par.txt",
-        relabeled="tmp/{s_studyid}_par_newchr.txt",
-    output:
-        parbed=temp("tmp/{s_studyid}_annotated_plink_chr25.bed"),
-        parbim=temp("tmp/{s_studyid}_annotated_plink_chr25.bim"),
-        parfam=temp("tmp/{s_studyid}_annotated_plink_chr25.fam"),
-    conda: "../envs/plink2a.yaml"
-    shell: "../scripts/bash/chrX_extract_PAR.sh {input.bed} {output.bed} {input.extract} {input.relabeled}"
-
 rule merge_list:
     input:
     output: merge_list=temp('tmp/{s_studyid}.merge_list')
@@ -181,21 +123,48 @@ rule merge_list:
             for chrom in CHROMOSOMES:
                 fh.write(f'tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}.bed tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}.bim tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}.fam\n')
 
-rule merge:
+rule merge_and_filter:
     input:
         expand("tmp/{{s_studyid}}_annotated_plink_chr{chrom}.fam", chrom=CHROMOSOMES),
         expand("tmp/{{s_studyid}}_annotated_plink_chr{chrom}.bim", chrom=CHROMOSOMES),
         expand("tmp/{{s_studyid}}_annotated_plink_chr{chrom}.bed", chrom=CHROMOSOMES),
         merge_list='tmp/{s_studyid}.merge_list',
     output:
-        bed="tmp/{s_studyid}_annotated_plink_merged.bed",
-        bim="tmp/{s_studyid}_annotated_plink_merged.bim",
-        fam="tmp/{s_studyid}_annotated_plink_merged.fam"
+        bed="tmp/{s_studyid}_annotated_plink_merged_noPAR.bed",
+        bim="tmp/{s_studyid}_annotated_plink_merged_noPAR.bim",
+        fam="tmp/{s_studyid}_annotated_plink_merged_noPAR.fam"
     conda: "../envs/plink2a.yaml"
     params:
         geno=float(config.get('geno_filter', 0.02)),
         maf=float(config.get('maf_filter', 0.0001)),
-    shell: """plink --pmerge-list {input.merge_list} --geno {params.geno} --maf {params.maf} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_merged"""
+    shell: """plink --pmerge-list {input.merge_list} --geno {params.geno} --maf {params.maf} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_merged_noPAR"""
+
+rule make_PAR_list:
+    input:
+        bim="tmp/{s_studyid}_annotated_plink_merged_noPAR.bim",
+    output:
+        TMP/"{s_studyid}_par_newchr.txt"
+    params:
+        par1_start=10001,
+        par1_end=2781479,
+        par2_start=155701383,
+        par2_end=156030895,
+        chrX_label="X"
+    shell:
+        "awk '($1 == \"{params.chrX_label}\") && (($4 >= {params.par1_start} && $4 <= {params.par1_end}) || ($4 >= {params.par2_start} && $4 <= {params.par2_end})) {{print $2\"\\t25\"}}' {input} > {output}"
+
+rule annotate_PAR:
+    input:
+        bed=TMP/"{s_studyid}_annotated_plink_merged_noPAR.bed",
+        bim=TMP/"{s_studyid}_annotated_plink_merged_noPAR.bim",
+        fam=TMP/"{s_studyid}_annotated_plink_merged_noPAR.fam",
+        parlist=TMP/"{s_studyid}_par_newchr.txt",
+    output:
+        bed=TMP/"{s_studyid}_annotated_plink_merged.bed",
+        bim=TMP/"{s_studyid}_annotated_plink_merged.bim",
+        fam=TMP/"{s_studyid}_annotated_plink_merged.fam"
+    conda: "../envs/plink.yaml"
+    shell: """plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --update-chr {input.parlist} --out tmp/{wildcards.s_studyid}_annotated_plink_merged --make-bed"""
 
 rule convert_to_vcf:
     input:
@@ -208,19 +177,19 @@ rule convert_to_vcf:
     shell: """plink --bfile tmp/{wildcards.s_studyid}_annotated_plink_merged --out tmp/{wildcards.s_studyid}_annotated_plink_merged --recode vcf bgz"""
 
 rule get_pedigree:
-    input: fam=rules.merge.output.fam
+    input: fam=rules.merge_and_filter.output.fam
     output: "tmp/{s_studyid}_annotated_plink_merged_ped.fam"
     conda: "../envs/r.yaml"
     script: "../scripts/R/put_in_pedigree.R"
     
 rule king_duplicate_check:
     input:
-        bed=rules.merge.output.bed,
-        bim=rules.merge.output.bim,
-        fam=rules.merge.output.fam,
+        bed=rules.merge_and_filter.output.bed,
+        bim=rules.merge_and_filter.output.bim,
+        fam=rules.merge_and_filter.output.fam,
     output: temp("tmp/{s_studyid}_king_duplicate.con")
     conda: "../envs/king.yaml"
-    shell: "king -b {input.bed} --fam {input.fam} --bim {input.bim} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
+    shell: "king -b {input.bed} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
 
 rule filter:
     input:
