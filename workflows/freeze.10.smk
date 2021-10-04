@@ -11,18 +11,19 @@ FLAGS = Path('flags')
 STUDIES = sorted(config.keys())
 TARGETS = []
 for s_studyid in STUDIES:
-    #if config[s_studyid].get('run_reference_concordance', False):
-    #    TARGETS.append(f'tmp/{s_studyid}_reference_concordance.con')
-    #if config[s_studyid].get('run_methylation_concordance', False):
-    #    TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
+    if config[s_studyid].get('run_reference_concordance', False):
+        TARGETS.append(f'tmp/{s_studyid}_reference_concordance.con')
+    if config[s_studyid].get('run_methylation_concordance', False):
+        TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
     if config[s_studyid].get('run_qc_notebook', False):
         TARGETS.append(FLAGS/f'{s_studyid}_samples.csv')
         TARGETS.append(FLAGS/f'{s_studyid}_markers.csv')
-    if config[s_studyid].get('run_pca_pipeline', False):
-        TARGETS.append(TMP/f'{s_studyid}_ready_for_umich.done')
+    #if config[s_studyid].get('run_pca_pipeline', False):
+    #    TARGETS.append(TMP/f'{s_studyid}_ready_for_umich.done')
     #if config[s_studyid].get('run_rna_concordance', False):
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
+    TARGETS.append(f'multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv')
 # TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
 # TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
 # TARGETS += expand("tmp/{s_studyid}_king_duplicate.con", s_studyid=STUDIES)
@@ -40,7 +41,7 @@ BCF_PATH_FOR_STUDY = {
 }
 
 SOURCE_FREEZE_FOR_STUDY = {
-    ## 'GECOPD': '10a.irc',
+    'GECOPD': '10a',
     'EOCOPD': '10a.irc',
     'ECLPSE': '10a.irc',
     'GLAXO':  '10a.irc',

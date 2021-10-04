@@ -9,15 +9,12 @@ rule run_qc_notebook:
         het_file = TMP/'{s_studyid}_annotated_plink_merged.het',
         imiss_file = TMP/'{s_studyid}_annotated_plink_merged.imiss',
         lmiss_file = TMP/'{s_studyid}_annotated_plink_merged.lmiss',
+        stashq_file = lambda w: TMP/f"wgs.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}.stashq.txt"
     output:
         sample_flags="flags/{s_studyid}_samples.csv",
         marker_flags="flags/{s_studyid}_markers.csv",
     log: notebook="notebook_logs/{s_studyid}_prelim_qc.ipynb"
     params:
-        Error_one='1',
-        Error_two='0.5',
-        Kinship=0.354,
-        SNPSEX=0,
         P=0.000001,
         f_bound=0.2,
         imiss_range=[10,20],
