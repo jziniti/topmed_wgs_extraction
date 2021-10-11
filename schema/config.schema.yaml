@@ -1,0 +1,4 @@
+$schema: "https://json-schema.org/draft-06/schema#"
+description: configuration for the topmed_wgs_extraction pipeline
+required:
+  - datasets
