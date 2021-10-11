@@ -8,6 +8,13 @@ rule convert_bim_to_civic:
     output: bim=temp(TMP/"{s_studyid}_annotated_plink_merged_civic.bim")
     shell: "awk '{{print $1,$1\":\"$4\":\"$5\":\"$6,$3,$4,$5,$6}}' {input.bim} > {output.bim}"
 
+
+rule convert_bim_to_chrpos:
+    input: bim=TMP/"{s_studyid}_annotated_plink_merged.bim"
+    output: bim=temp(TMP/"{s_studyid}_annotated_plink_merged_chrpos.bim")
+    shell: "awk '{{print $1,$1\":\"$4,$3,$4,$5,$6}}' {input.bim} > {output.bim}"
+
+
 rule match_format_to_reference:
     input:
         bed=TMP/"{s_studyid}_annotated_plink_merged.bed",
@@ -35,6 +42,9 @@ use rule duplicate_vs_reference from king with:
         rfam=lambda w: f"{config[w['s_studyid']]['known_good_reference']}.fam",
     output:
         kin=TMP/"{s_studyid}_reference_concordance.con",
+    resources:
+        mem_free="200G",
+        mem_mb="2000",
     params:
         Q=lambda w: TMP/f"{w.s_studyid}_annotated_plink_merged_chrpos",
         R=lambda w: f"{config[w['s_studyid']]['known_good_reference']}",

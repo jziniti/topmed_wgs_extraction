@@ -10,7 +10,8 @@ except NameError: TARGETS = []
 try: STUDIES
 except NameError: STUDIES = sorted(config.keys())
 
-KING_DIR = TMP/'king'
+KING_DIR = Path('data/king')
+KING_PRESERVE_DIR = Path('data/king-preserve')
 
 #for s_studyid in STUDIES:
 #    if config[s_studyid].get('run_rna_concordance', False):
@@ -30,5 +31,7 @@ use rule generate_king_report from rnaseq_concordance as rna_generate_king_repor
         html_file=TMP/"{s_studyid}_rna_king_results_summary.html",
         csv_file=TMP/"{s_studyid}_rna_king_results_summary.csv",
 
-use rule bcftools_setid from rnaseq_concordance with:
-     input: vcf=lambda w: f'/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/bcbio_ea/data/bcbio/{w.bambase}/final/{w.bambase}/{w.bambase}-freebayes.vcf.gz',
+use rule bcftools_setid from rnaseq_concordance as rna_bcftools_setid with:
+     input:
+         vcf=lambda w: f'/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/bcbio_ea/data/bcbio/{w.bambase}/final/{w.bambase}/{w.bambase}-freebayes.vcf.gz',
+

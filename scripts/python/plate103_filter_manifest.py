@@ -1,6 +1,9 @@
 import pandas as pd
 
 if __name__ == '__main__':
+
+    sample_metadata = pd.read_csv(snakemake.input.sample_metadata)
+
     manifest = pd.read_csv(snakemake.input.manifest)
     manifest_columns = manifest.columns
 
@@ -14,4 +17,5 @@ if __name__ == '__main__':
     group_ids = plate_103_subset.group_id.unique()
 
     manifest = manifest[manifest['group_id'].isin(group_ids)]
+    manifest = manifest.merge(sample_metadata, on='S_SAMPLEID', how='left', suffixes=('_multiomics', None))
     manifest.to_csv(snakemake.output.manifest)

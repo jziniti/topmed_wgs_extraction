@@ -1,3 +1,7 @@
+from snakemake.utils import validate
+
+## validate(config, "../schema/config.schema.yaml")
+
 CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X"]
 
 FREEZE9B = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.9b/minDP10/freeze.9b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
@@ -11,24 +15,18 @@ FLAGS = Path('flags')
 STUDIES = sorted(config.keys())
 TARGETS = []
 for s_studyid in STUDIES:
+    # TARGETS.append(f"output_freezes/{s_studyid}/{s_studyid}_freeze.10.bed")
+    if config[s_studyid].get('run_multiomics_qc', False):
+        TARGETS.append(f'multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv')
     if config[s_studyid].get('run_reference_concordance', False):
         TARGETS.append(f'tmp/{s_studyid}_reference_concordance.con')
     if config[s_studyid].get('run_methylation_concordance', False):
         TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
-    if config[s_studyid].get('run_qc_notebook', False):
-        TARGETS.append(FLAGS/f'{s_studyid}_samples.csv')
-        TARGETS.append(FLAGS/f'{s_studyid}_markers.csv')
     #if config[s_studyid].get('run_pca_pipeline', False):
     #    TARGETS.append(TMP/f'{s_studyid}_ready_for_umich.done')
-    #if config[s_studyid].get('run_rna_concordance', False):
-    #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
-    #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
-    TARGETS.append(f'multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv')
-# TARGETS += expand("tmp/{s_studyid}.sexcheck", s_studyid=STUDIES)
-# TARGETS += expand("tmp/{s_studyid}_reference.stashq.txt", s_studyid=STUDIES)
-# TARGETS += expand("tmp/{s_studyid}_king_duplicate.con", s_studyid=STUDIES)
-# TARGETS += expand(TMP/'{s_studyid}_annotated_plink_merged.{suffix}', s_studyid=STUDIES, suffix=('frq', 'imiss', 'lmiss', 'het', 'hwe', 'sexcheck'))
-
+    if config[s_studyid].get('run_rna_concordance', False):
+        TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
+        TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
 
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
@@ -51,14 +49,19 @@ SOURCE_FREEZE_FOR_STUDY = {
 }
 
 ### Modules we will be using
+include: "gecopd_heterozygosity.smk"
 include: "gwas_qc_pipeline.smk"
 include: "methylation_ref_concordance.smk"
-include: "reaka_test_notebooks.smk"
+include: "run_qc_notebook.smk"
 include: "multiomics.smk"
 include: "plate103.smk"
-#include: "rnaseq_concordance.smk"
-include: "cdnm_pca_pipeline_shim.smk"
+include: "rnaseq_concordance.smk"
 include: "duplicate_vs_reference.smk"
+include: "eocopd_exome_sexcheck.smk"
+include: "cra_forced_good_sexcheck.smk"
+include: "glaxo_reference_prep.smk"
+#include: "cdnm_pca_pipeline_shim.smk"
+
 
 rule done: input: TARGETS
 
@@ -169,17 +172,17 @@ rule annotate_PAR:
 
 rule convert_to_vcf:
     input:
-        bed="tmp/{s_studyid}_annotated_plink_merged.bed",
-        bim="tmp/{s_studyid}_annotated_plink_merged.bim",
-        fam="tmp/{s_studyid}_annotated_plink_merged.fam"
+        bed=rules.annotate_PAR.output.bed,
+        bim=rules.annotate_PAR.output.bed,
+        fam=rules.annotate_PAR.output.bed,
     output:
-        bed="tmp/{s_studyid}_annotated_plink_merged.vcf.gz",
+        bed=TMP/"{s_studyid}_annotated_plink_merged.vcf.gz",
     conda: "../envs/plink2a.yaml"
     shell: """plink --bfile tmp/{wildcards.s_studyid}_annotated_plink_merged --out tmp/{wildcards.s_studyid}_annotated_plink_merged --recode vcf bgz"""
 
-rule get_pedigree:
+rule create_pedigree_fam_file:
     input: fam=rules.merge_and_filter.output.fam
-    output: "tmp/{s_studyid}_annotated_plink_merged_ped.fam"
+    output: TMP/"{s_studyid}_annotated_plink_merged_ped.fam"
     conda: "../envs/r.yaml"
     script: "../scripts/R/put_in_pedigree.R"
     
@@ -188,24 +191,28 @@ rule king_duplicate_check:
         bed=rules.merge_and_filter.output.bed,
         bim=rules.merge_and_filter.output.bim,
         fam=rules.merge_and_filter.output.fam,
-    output: temp("tmp/{s_studyid}_king_duplicate.con")
+    output: temp(TMP/"{s_studyid}_king_duplicate.con")
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
 
-rule filter:
+rule apply_qc_filters:
     input:
-        bed="tmp/{s_studyid}.annotated_plink_merged.bed",
-        bim="tmp/{s_studyid}.annotated_plink_merged.bim",
-        fam="tmp/{s_studyid}.annotated_plink_merged.fam",
+        bed="tmp/{s_studyid}_annotated_plink_merged.bed",
+        bim="tmp/{s_studyid}_annotated_plink_merged.bim",
+        fam="tmp/{s_studyid}_annotated_plink_merged_pedigree.fam",
         rem="flags/{s_studyid}_samples.csv",
-        exclude="flages/{s_studyid}_markers.csv",
+        exclude="flags/{s_studyid}_markers.csv",
     output:
-        bed="output_freezes/{s_study}/{s_studyid}_freeze.10.bed",
-        bim="output_freezes/{s_study}/{s_studyid}_freeze.10.bim",
-        fam="output_freezes/{s_study}/{s_studyid}_freeze.10.fam",
+        bed="output_freezes/{s_studyid}/{s_studyid}_freeze.10.bed",
+        bim="output_freezes/{s_studyid}/{s_studyid}_freeze.10.bim",
+        fam="output_freezes/{s_studyid}/{s_studyid}_freeze.10.fam",
+    params:
+        out="output_freezes/{wildcards.s_studyid}/{wildcards.s_studyid}_freeze.10"
     conda: "../envs/plink2a.yaml"
-    shell: "plink --bfile  tmp/{wildcards.s_studyid}.annotated_plink_merged.bed \
-                  --out output_freezes/{wildcards.s_study}/{wildcards.s_studyid}_freeze.10 \
+    shell: "plink --bed {input.bed} \
+                  --bim {input.bim} \
+                  --fam {input.fam} \
                   --remove {input.rem} \
                   --exclude {input.exclude} \
+                  --out {params.out} \
                   --make-bed"
