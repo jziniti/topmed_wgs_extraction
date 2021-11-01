@@ -43,7 +43,7 @@ class GenerateGraph:
         self.generate_graph(nodes, shape_nodes, edges, labels, group_id)
         
     def generate_graph(self, nodes, shape_nodes, edges, labels, groupid):
-        graph_path = "images/" + "group" + str(groupid) + ".png"
+        graph_path = "images/" + "group" + str(groupid) + ".dot"
 
         fig = plt.figure(figsize=(12,12))
         ax = plt.subplot(111)
@@ -60,9 +60,10 @@ class GenerateGraph:
     
         nx.draw_networkx_edges(G, pos, edgelist=edges)
         nx.draw_networkx_edge_labels(G,pos,edge_labels=labels,font_color='red',label_pos=0.4)
-        plt.legend()
-        plt.savefig(graph_path, format="PNG")
-        plt.close(fig)
+        nx.drawing.nx_pydot.write_dot(G, graph_path)
+        #plt.legend()
+        #plt.savefig(graph_path, format="PNG")
+        #plt.close(fig)
         
     # returns a list of edges and a list of edge labels
     # given a list of nodes
@@ -167,7 +168,7 @@ if __name__ == "__main__":
     
     if group_ids[0] == "all":
         # satisfy requirement for outputing all.txt file
-        f = open("images/groupall.png", "a")
+        f = open("images/groupall.dot", "a")
         f.write(str(len(group_ids)))
         f.close()
         

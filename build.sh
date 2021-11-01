@@ -1,5 +1,11 @@
+package_name=topmed_wgs_extraction
 mkdir ${PREFIX}/snakemake/
+mkdir ${PREFIX}/snakemake/${package_name}
 
-git clone git@changit.bwh.harvard.edu:rejpz/topmed_wgs_extraction.git
-cd topmed_wgs_extraction
-cp -R envs workflows scripts notebooks ${PREFIX}/snakemake/
+git clone git@changit.bwh.harvard.edu:rejpz/${package_name}.git
+cd ${package_name}
+for dir in envs workflows scripts notebooks rules; do
+    if [ -e ${dir} ]; then
+        cp -R ${dir} ${PREFIX}/snakemake/${package_name}/
+    fi
+done
