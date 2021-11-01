@@ -28,6 +28,13 @@ for s_studyid in STUDIES:
         TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
         TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
 
+TARGETS.append(TMP/'IRCALL_exome_duplicate.con')
+TARGETS.append(TMP/'IRCALL_axiom1_duplicate.con') ### This one segfaults ... datasets too big?
+TARGETS.append(TMP/'IRCALL_GECOPD_duplicate.con')
+TARGETS.append(TMP/'IRCALL_CAMP_duplicate.con')
+TARGETS.append(TMP/'IRCALL_CRA_duplicate.con')
+TARGETS.append(TMP/'IRCALL_ECLPSE_duplicate.con')
+
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
     'EOCOPD': FREEZE10_IRC,
@@ -60,6 +67,8 @@ include: "duplicate_vs_reference.smk"
 include: "eocopd_exome_sexcheck.smk"
 include: "cra_forced_good_sexcheck.smk"
 include: "glaxo_reference_prep.smk"
+include: "exome6k_preparation.smk"
+include: "ircall_concordance.smk"
 #include: "cdnm_pca_pipeline_shim.smk"
 
 
@@ -83,6 +92,12 @@ rule get_study_ids:
     conda: "../envs/sapphire8.yaml"
     shell: "grep {wildcards.s_studyid} {input} | cut -d \" \" -f 1 > {output}"
 
+rule get_study_ids_all:
+    input: "tmp/wgs.10a.irc.stashq.txt"
+    output: nwdids=temp("tmp/IRCALL.nwds.txt")
+    conda: "../envs/sapphire8.yaml"
+    shell: "cut -d \" \" -f 1 {input} > {output}"
+
 rule sapphire_nwd_list:
     input: 
     output: nwdids=temp("tmp/{s_studyid}.sapphire.txt")
@@ -98,23 +113,23 @@ rule extract:
         #bcf=lambda w: f"/proj/edith/regeps/regep00/studies/COPDGene/data/wgs/TopMed/data/freezes/freeze.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}/minDP10/freeze.10a.chr{{chrom}}.pass_and_fail.gtonly.minDP10.bcf",
         bcf=lambda w: BCF_PATH_FOR_STUDY.get(w.s_studyid, FREEZE10),
     output:
-        bcf=temp("tmp/{s_studyid}.{chrom}.PASS.bcf")
+        bcf=protected("tmp/{s_studyid}.{chrom}.PASS.bcf")
     conda: "../envs/bcftools.yaml"
     shell: "bcftools view -S {input.samples} -i 'FILTER=\"PASS\"' -c 1 -O b -m2 -M2 --force-samples --types snps {input.bcf} -o {output.bcf}"
 
 rule setid:
     input:
         vcf=rules.extract.output.bcf,
-    output: bcf=temp("tmp/{s_studyid}.{chrom}.annotated.bcf")
+    output: bcf=protected("tmp/{s_studyid}.{chrom}.annotated.bcf")
     conda: "../envs/bcftools.yaml"
     shell: "bcftools annotate --set-id '%CHROM:%POS:%REF:%FIRST_ALT' -O b -o {output} {input.vcf}"
 
 rule convert_to_plink:
     input: bcf=rules.setid.output.bcf
     output:
-        bed=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.bed"),
-        bim=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.bim"),
-        fam=temp("tmp/{s_studyid}_annotated_plink_chr{chrom}.fam"),
+        bed=protected("tmp/{s_studyid}_annotated_plink_chr{chrom}.bed"),
+        bim=protected("tmp/{s_studyid}_annotated_plink_chr{chrom}.bim"),
+        fam=protected("tmp/{s_studyid}_annotated_plink_chr{chrom}.fam"),
     conda: "../envs/plink2a.yaml"
     shell:
         """plink --allow-extra-chr  --bcf {input} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_chr{wildcards.chrom}"""
@@ -195,7 +210,7 @@ rule king_duplicate_check:
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
 
-rule apply_qc_filters:
+rule filter_and_publish:
     input:
         bed="tmp/{s_studyid}_annotated_plink_merged.bed",
         bim="tmp/{s_studyid}_annotated_plink_merged.bim",
