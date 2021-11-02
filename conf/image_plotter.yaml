@@ -1,0 +1,5 @@
+name: "Alex"
+manifest_path: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10.cdnm/plate103/ANNOTATED_MANIFEST.csv"
+c_data_path: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10.cdnm/plate103/c_data.build_sample_groups"
+shape_by: "dataset_id"
+draw_concordance_groups: [1009, 1010, 102, 1081, 1088]

@@ -22,7 +22,7 @@ library(dplyr)
 library(data.table)
 
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(root.dir='/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples')
+## knitr::opts_chunk$set(root.dir='/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples')
 knitr::opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
 options(stringsAsFactors=FALSE, digits=4)
 ```
@@ -62,7 +62,6 @@ dim(drops)
 unmatched <- dfs[dfs$status=="review_unmatched_sample",]
 dim(unmatched)
 
-setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/")
 write.table(drops,"drop_f10.txt",row.names=F,quote=F)
 write.table(unmatched,"unmatched_f10.txt",row.names=F,quote=F)
 ```
@@ -93,14 +92,12 @@ sum(f10a.irc.copd$V1%in%losts$V1)
 STUDY <- unique(f10a.irc.copd$V5)
 for(study in STUDY){
   all.sp <- c(f10a.irc.copd$V1[f10a.irc.copd$V5==study],losts$V1)
-  setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/1.cross_study_check/")
   if(study=="ECLPSE") study <- "ECLIPSE"
   write.table(all.sp,paste0(study,"_samples.txt"),row.names=F,col.names=F,quote=F)
 }
 ```
 
 ```
-cd /udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/1.cross_study_check
 
 # Extract biallelic common SNPs..
 sh extract_samples.sh
@@ -116,7 +113,6 @@ sh merge_plink.sh
 
 ## Concordance check using KING
 ```
-cd /udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/1.cross_study_check
 sh King.sh
 ```
 
@@ -126,7 +122,6 @@ losts <- fread("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/copd_unknown_n
 losts$new.study <- ""
 
 
-setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/1.cross_study_check")
 
 for(study in c("GECOPD","EOCOPD","ECLIPSE","GLAXO","PLCOPD","LTRC")){
   cat(paste0("#################### ",study," ####################\n"))
@@ -154,17 +149,10 @@ print(kable(losts[losts$new.study!="",]))
 losts$source <- ""
 losts$source[losts$new.study!=""] <- "Cross_study_check"
 colnames(losts)[1] <- "NWD_ID"
-write.csv(losts,"/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/New_study_83samples.csv",row.names=F,quote=F)
+write.csv(losts,"cross.New_study_83samples.csv",row.names=F,quote=F)
 ```
 
 - NWD912732(GECOPD) - NWD790941(ECLIPSE)
-
-```{r echo=F,eval=F}
-### Remove tmp files
-cd /udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/1.cross_study_check
-rm -f *_chr*
-rm -f *_merge.*
-```
 
 ## Independent external reference dataset
 - Workflow
@@ -189,7 +177,6 @@ rm -f *_merge.*
 
 ### Extract 83 samples from TOPMed WGS data
 ```
-cd /udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check
 
 # Extract biallelic common SNPs..
 sh extract_samples.sh
@@ -214,7 +201,7 @@ do.king <- function(race=c("AA","NHW")){
 
   ovl <- copdgene[copdgene$snpID%in%lost_sp$snpID1 | copdgene$snpID%in%lost_sp$snpID2,]
   ovl.bed <- ovl[,c("V1","V4","V4")]
-  setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/copdgene_genotype")
+
   write.table(ovl.bed,paste0(race,"_plink.bed"),row.names=F,col.names=F,quote=F)
   
   ### Extract overlapping variants
@@ -248,7 +235,6 @@ do.king <- function(race=c("AA","NHW")){
 
 #### Result
 ```{r echo=F}
-setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/copdgene_genotype")
 show.res <- function(race=c("AA","NHW")){
   cat(paste0("#################### ",race," ####################\n\n"))
   con <- read.table(paste0("king_",race,".con"),head=T)
@@ -301,7 +287,7 @@ losts$new.study[aa[-grep("GECOPD",losts$new.study[aa])]] <- paste0(losts$new.stu
 losts$new.study <- gsub("^;","",losts$new.study)
 losts$source[aa] <- paste0(losts$source[aa],";COPDGene_GT")
 losts$source <- gsub("^;","",losts$source)
-write.csv(losts,"/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/New_study_83samples.csv",row.names=F,quote=F)
+write.csv(losts,"losts.New_study_83samples.csv",row.names=F,quote=F)
 ```
 
 ### COPDGene exome chip data
@@ -315,67 +301,8 @@ write.csv(losts,"/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/New_study_83s
     - exome6kSubAndMarkCleanV03.fam
 - Build: hg19   
     
-### LTRC
-- /proj/regeps/regep00/studies/LTRC/analyses/resaf/Genotypes/Freeze9b_redo/PLINK/biallele_SNP_MAF_0.01_chr*.bim
-- hg38
-
-```{r eval=F}
-## Extract overlapping variants from LTRC
-ext.ovl <- function(chr){
-  library(data.table)
-  ltrc <- fread(paste0("/proj/regeps/regep00/studies/LTRC/analyses/resaf/Genotypes/Freeze9b_redo/PLINK/biallele_SNP_MAF_0.01_chr",chr,".bim"),head=F,data.table=F)
-  lost_sp <- fread(paste0("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/copd_unknown_83_merge_pruned.bim"),head=F,data.table=F)
-  
-  ltrc$snpID <- with(ltrc,paste(V1,V4,V5,V6,sep=":"))
-  lost_sp$snpID1 <- with(lost_sp,paste(V1,V4,V5,V6,sep=":")) 
-  lost_sp$snpID2 <- with(lost_sp,paste(V1,V4,V6,V5,sep=":")) 
-
-  ovl <- ltrc[ltrc$snpID%in%lost_sp$snpID1 | ltrc$snpID%in%lost_sp$snpID2,]
-  ovl.bed <- ovl[,c("V1","V4","V4")]
-  setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/LTRC")
-  write.table(ovl.bed,paste0("chr",chr,"_plink.bed"),row.names=F,col.names=F,quote=F)
-  
-  ### Extract overlapping variants
-  ## LTRC
-  system(paste0("plink2 --bfile /proj/regeps/regep00/studies/LTRC/analyses/resaf/Genotypes/Freeze9b_redo/PLINK/biallele_SNP_MAF_0.01_chr",chr," --extract bed1 chr",chr,"_plink.bed --make-pgen --sort-vars --out LTRC_chr",chr))
-  system(paste0("plink2 --pfile LTRC_chr",chr," --make-bed --out LTRC_chr",chr))
-  bim <- fread(paste0("LTRC_chr",chr,".bim"),head=F,data.table=F)
-  bim$V2 <- with(bim,paste(V1,V4,sep=":"))
-  write.table(bim,paste0("LTRC_chr",chr,".bim"),row.names=F,col.names=F,quote=F,sep="\t")
-}
-setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/LTRC")
-aa <- lapply(1:22,ext.ovl)
-
-### Merge LTRC files
-for(chr in 2:22){
-  system(paste0("echo LTRC_chr",chr," >> LTRC.mergelist"))
-}
-system("/udd/redpr/bin/plink19 --bfile LTRC_chr1 --merge-list LTRC.mergelist --make-bed --out LTRC_merge")
-
-### Extract overlapping variants from 83 samples
-system(paste0("cat ",paste0(paste0("chr",1:22,"_plink.bed"),collapse=" ")," > ovl_plink.bed"))
-system("plink2 --bfile /udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/copd_unknown_83_merge_pruned --extract bed1 ovl_plink.bed --make-bed --out 83samples")
-bim <- fread("83samples.bim",head=F,data.table=F)
-bim$V2 <- with(bim,paste(V1,V4,sep=":"))
-write.table(bim,"83samples.bim",row.names=F,col.names=F,quote=F,sep="\t")
-  
-### Merge LTRC and 83 samples
-system("/udd/redpr/bin/plink19 --bfile LTRC_merge --bmerge 83samples --make-bed --out OVL_merge")
-
-### King
-system("/udd/redpr/bin/king -b OVL_merge.bed --duplicate --prefix king")
-
-## Remove tmp files
-system("rm -f 83samples.*")
-system("rm -f chr*")
-system("rm -f LTRC*")
-system("rm -f OVL_*")
-system("rm -f ovl_*")
-```
-
 #### Result
 ```{r echo=F}
-setwd("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/LTRC")
 con <- read.table("king.con",head=T)
 lost_sp <- fread(paste0("/udd/rewki/projects/TOPMed/Freeze.10/Lost_samples/2.indep_study_check/copd_unknown_83_merge_pruned.fam"),head=F,data.table=F)$V2
 

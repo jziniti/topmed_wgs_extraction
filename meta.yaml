@@ -3,9 +3,18 @@ package:
   version: "0.1.0"
 
 build:
-  number: 1
+  number: 4
 
 about:
   home: https://changit.bwh.harvard.edu/rejpz/topmed_wgs_extraction
   license: GPL
   summary: Freeze.10 extraction and QC
+
+requirements:
+    run:
+      - snakemake==6.8.0
+      - 850K_qc_pipeline==0.1
+      - cdnm_gwas_pipeline==0.1
+      - rnaseq_snp_concordance==0.1
+      - topmed_multiomics_qc==0.1
+      - cdnm==0.1

@@ -2,7 +2,12 @@ name: r
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
-  - r==4.0.3
+  - r-base==4.0.3
+  - r-rmarkdown==2.11
+  - r-dt==0.19  
+  - r-dplyr==1.0.7
+  - r-data.table==1.14.2  
+  - r-knitr==1.36
+  - r-formatr==1.11
   
