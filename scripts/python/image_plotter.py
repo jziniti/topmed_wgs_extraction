@@ -3,6 +3,7 @@ import pandas as pd
 import networkx as nx
 from itertools import combinations
 import math
+import pydot
 
 class GenerateGraph:
     # initialize object with manifest data and cdata
@@ -10,12 +11,12 @@ class GenerateGraph:
         self.df = manifest_df
         self.dfc = cdata_df
         self.node_mappings = { 
-            "ObservedGender": { "F": "o", "M": "s", "U": "d", "nan": "v" },
-            "SampleLabel": { "Number": "s", "NWD": "d", "TOE": "v" },
-            "SampleAlias": { "Number": "s", "NWD": "d", "TOE": "v" },
-            "SampleTypeCode": { "d": "s", "m": "p", "r": "d" },
-            "dataset_id": { "tmp0": "s", "tmp1": "d", "tmp2": "v", "tmp3": "o" },
-            "S_SAMPLEID": { "tmp0": "s", "tmp1": "d", "tmp2": "v", "tmp3": "o" }
+            "ObservedGender": { "F": "circle", "M": "square", "U": "star", "nan": "star" },
+            "SampleLabel": { "Number": "square", "NWD": "diamond", "TOE": "triangle" },
+            "SampleAlias": { "Number": "square", "NWD": "diamond", "TOE": "triangle" },
+            "SampleTypeCode": { "d": "square", "m": "triangle", "r": "diamond" },
+            "dataset_id": { "tmp0": "square", "tmp1": "diamond", "tmp2": "triangle", "tmp3": "circle" },
+            "S_SAMPLEID": { "tmp0": "square", "tmp1": "diamond", "tmp2": "triangle", "tmp3": "circle" }
         }
         self.mapping_funcs = {
             "ObservedGender": lambda x: x,
@@ -40,30 +41,45 @@ class GenerateGraph:
         # getting all combinations of samplelabels
         edges, labels = self.generate_edges(nodes)
 
-        self.generate_graph(nodes, shape_nodes, edges, labels, group_id)
+        self.generate_graph(shape_nodes, edges, labels, group_id, shape_by)
         
-    def generate_graph(self, nodes, shape_nodes, edges, labels, groupid):
-        graph_path = "images/" + "group" + str(groupid) + ".dot"
-
-        fig = plt.figure(figsize=(12,12))
-        ax = plt.subplot(111)
-        ax.set_title('Output Graph', fontsize=10)
-
-        G = nx.Graph()
-        G.add_nodes_from(nodes)
-        G.add_edges_from(edges)
-        pos = nx.spring_layout(G, k=0.6)
-
-        for shape in shape_nodes.keys():
-            nx.draw_networkx_nodes(G, pos, nodelist=shape_nodes[shape]["nodes"], node_shape=shape, label=shape_nodes[shape]["attribute"])
-            nx.draw_networkx_labels(G, pos, labels={node:node.split("_")[0] for node in G.nodes()})
-    
-        nx.draw_networkx_edges(G, pos, edgelist=edges)
-        nx.draw_networkx_edge_labels(G,pos,edge_labels=labels,font_color='red',label_pos=0.4)
-        nx.drawing.nx_pydot.write_dot(G, graph_path)
-        #plt.legend()
-        #plt.savefig(graph_path, format="PNG")
-        #plt.close(fig)
+    def generate_graph(self, shape_nodes, edges, labels, groupid, shape_by):
+        graph_path = "images/" + "group" + str(groupid) + ".png"
+        
+        # create graph
+        G = pydot.Dot(graph_path, graph_type="graph")
+        
+        # create legend
+        legend = pydot.Cluster(graph_name="legend", label="Legend Shaped By: " + shape_by, 
+                               fontsize="15", style="filled", fillcolor="lightgrey")
+        
+        # add nodes
+        for node_shape in shape_nodes.keys():
+            for node in shape_nodes[node_shape]["nodes"]:
+                if node[0:3] == "TOE":
+                    new_node = pydot.Node(node[0:9], shape=node_shape, style="filled", fillcolor="lightblue")
+                else:
+                    new_node = pydot.Node(node, shape=node_shape, style="filled", fillcolor="lightblue")
+                G.add_node(new_node)
+                
+            leg = pydot.Node(shape_nodes[node_shape]["attribute"], shape=node_shape, style="filled", fillcolor="lightblue")
+            legend.add_node(leg)
+            
+        G.add_subgraph(legend)
+        
+        # add edges
+        for edge in edges:
+            edge1 = edge[0]
+            edge2 = edge[1]
+            if edge1[0:3] == "TOE":
+                edge1 = edge1[0:9]
+            if edge2[0:3] == "TOE":
+                edge2 = edge2[0:9]
+            
+            new_edge = pydot.Edge(edge1, edge2, label=labels[edge])
+            G.add_edge(new_edge)
+        
+        G.write_png(graph_path)
         
     # returns a list of edges and a list of edge labels
     # given a list of nodes
@@ -158,7 +174,7 @@ if __name__ == "__main__":
     else:
         manifest_path = "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10.cdnm/plate103/ANNOTATED_MANIFEST.csv"
         c_data_path = "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10.cdnm/plate103/c_data.build_sample_groups"
-        shape_by = "dataset_id"
+        shape_by = "ObservedGender"
         group_ids = [1009, 1010, 102, 1081, 1088]
     
     df = pd.read_csv(manifest_path)
