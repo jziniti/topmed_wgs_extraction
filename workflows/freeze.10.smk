@@ -24,9 +24,9 @@ for s_studyid in STUDIES:
         TARGETS.append(TMP/f'{s_studyid}_methylation_freeze10.kin0')
     #if config[s_studyid].get('run_pca_pipeline', False):
     #    TARGETS.append(TMP/f'{s_studyid}_ready_for_umich.done')
-    if config[s_studyid].get('run_rna_concordance', False):
-        TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
-        TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
+    #if config[s_studyid].get('run_rna_concordance', False):
+    #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
+    #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
 
 TARGETS.append(TMP/'IRCALL_exome_duplicate.con')
 TARGETS.append(TMP/'IRCALL_axiom1_duplicate.con') ### This one segfaults ... datasets too big?
@@ -34,6 +34,7 @@ TARGETS.append(TMP/'IRCALL_GECOPD_duplicate.con')
 TARGETS.append(TMP/'IRCALL_CAMP_duplicate.con')
 TARGETS.append(TMP/'IRCALL_CRA_duplicate.con')
 TARGETS.append(TMP/'IRCALL_ECLPSE_duplicate.con')
+TARGETS.append(TMP/"COPD_lost_samples_rendered.Rmd")
 
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
@@ -68,7 +69,9 @@ include: "eocopd_exome_sexcheck.smk"
 include: "cra_forced_good_sexcheck.smk"
 include: "glaxo_reference_prep.smk"
 include: "exome6k_preparation.smk"
-include: "ircall_concordance.smk"
+# include: "ircall_concordance.smk"
+include: "../COPD_lost_samples/Snakefile"
+
 #include: "cdnm_pca_pipeline_shim.smk"
 
 

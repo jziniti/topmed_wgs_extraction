@@ -19,3 +19,9 @@
 [submodule "king"]
 	path = king
 	url = git@changit.bwh.harvard.edu:rejpz/king.git
+[submodule "COPD_lost_samples"]
+	path = COPD_lost_samples
+	url = git@changit.bwh.harvard.edu:rewki/COPD_lost_samples
+[submodule "oracle_loading"]
+	path = oracle_loading
+	url = git@changit.bwh.harvard.edu:reaka/oracle_loading
