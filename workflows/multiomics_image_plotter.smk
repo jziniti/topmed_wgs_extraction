@@ -10,14 +10,10 @@ rule render_concordance_group:
         annotated_manifest=MANIFEST_PATH,
         concordance_data=C_DATA_PATH
     output:
-        expand('images/group{group_id}.dot', group_id=GROUP_IDS)
+        expand('images/group{group_id}.png', group_id=GROUP_IDS)
     params:
         group_ids=GROUP_IDS,
         shape_by=SHAPE_BY
     conda: "../envs/cdnm-jupyter-python-3.7.6.yaml"
     script: "../scripts/python/image_plotter.py"
 
-rule dot_2_png:
-    input: expand('images/group{group_id}.dot', group_id=GROUP_IDS)
-    output: expand('images/group{group_id}.png', group_id=GROUP_IDS)
-    shell: "for dot in `ls images/group[1-9]*.dot`; do dot -Tpng $dot > ${{dot/dot/png}}; done"
