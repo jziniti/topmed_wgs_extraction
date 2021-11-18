@@ -83,7 +83,9 @@ rule stashq:
     input: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.{freeze}/manifests/nwdids.txt"
     output: temp("tmp/wgs.{freeze}.stashq.txt")
     conda: "../envs/stashq.yaml"
-    shell: "stashq alias `cat {input}` > {output}"
+    ## shell: "stashq alias `cat {input}` > {output}"
+    params: script=srcdir("../scripts/bash/split_stashq.sh")
+    shell: "bash {params.script} {input} > {output}"
 
 rule stashq_reference:
     input: lambda w: f"{config[w.s_studyid]['known_good_reference']}.fam"
@@ -91,13 +93,27 @@ rule stashq_reference:
     conda: "../envs/stashq.yaml"
     shell: "stashq alias `awk '{{print $2}}' {input}` > {output}"
 
-rule get_study_ids:
-    input: lambda w: f"tmp/wgs.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}.stashq.txt"
+# ruleorder: get_aliases_for_GECOPD > get_aliases_for_study
+# rule get_aliases_for_GECOPD:
+#    input:
+#        stashq=lambda w: f"tmp/wgs.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}.stashq.txt",
+#        recovered_samples="code/COPD_lost_samples/output/assigned.csv",
+#        recovered_sk38="code/COPD_lost_samples/output/assigned_from_sk38.txt",
+#    output: nwdids=temp("tmp/{s_studyid}.nwds.txt")
+#    conda: "../envs/sapphire8.yaml"
+#    shell: """grep {wildcards.s_studyid} {input.stashq} | cut -d \" \" -f 1 > {output}; \
+#            awk -F , '$2 == \"{wildcards.s_studyid}\" {{ print $1}}' {input.recovered_samples} >> {output}; \
+#            grep -v NWDID {input.recovered_sk38} >> {output}"""
+
+rule get_aliases_for_study:
+    input:
+        stashq=lambda w: f"tmp/wgs.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}.stashq.txt",
+        recovered_samples="code/COPD_lost_samples/output/assigned.csv",
     output: nwdids=temp("tmp/{s_studyid}.nwds.txt")
     conda: "../envs/sapphire8.yaml"
-    shell: "grep {wildcards.s_studyid} {input} | cut -d \" \" -f 1 > {output}"
+    shell: "grep {wildcards.s_studyid} {input.stashq} | cut -d \" \" -f 1 > {output}; awk -F , '$2 == \"{wildcards.s_studyid}\" {{ print $1}}' {input.recovered_samples} >> {output}"
 
-rule get_study_ids_all:
+rule freeze10_irc_manifest:
     input: "tmp/wgs.10a.irc.stashq.txt"
     output: nwdids=temp("tmp/IRCALL.nwds.txt")
     conda: "../envs/sapphire8.yaml"
@@ -112,62 +128,40 @@ rule sapphire_nwd_list:
         s_studyid='{s_studyid}',
     script: "../scripts/python/read_sapphire_aliases.py"
 
-rule write_rescue_list:
-    input: "code/COPD_lost_samples/output/assigned.csv"
-    output: expand("tmp/{s_studyid}.rescues.txt", s_studyid=('GECOPD',))
-    script: "../scripts/python/write_rescue_list.py"
-
 rule extract:
     input:
         samples="tmp/{s_studyid}.nwds.txt",
         #bcf=lambda w: f"/proj/edith/regeps/regep00/studies/COPDGene/data/wgs/TopMed/data/freezes/freeze.{SOURCE_FREEZE_FOR_STUDY.get(w.s_studyid, '10a')}/minDP10/freeze.10a.chr{{chrom}}.pass_and_fail.gtonly.minDP10.bcf",
         bcf=lambda w: BCF_PATH_FOR_STUDY.get(w.s_studyid, FREEZE10),
     output:
-        bcf=protected("tmp/{s_studyid}.{chrom}.PASS.bcf")
+        #bcf=protected("tmp/{s_studyid}.{chrom}.PASS.bcf")
+        bcf="tmp/{s_studyid}.{chrom}.PASS.bcf"
     conda: "../envs/bcftools.yaml"
     shell: "bcftools view -S {input.samples} -i 'FILTER=\"PASS\"' -c 1 -O b -m2 -M2 --force-samples --types snps {input.bcf} -o {output.bcf}"
-
-### This rule is a copy of the on above, but used for extracting
-### Samples that are not a-priori part of a given study
-use rule extract as extract_rescued_samples with:
-    input:
-        samples="tmp/{s_studyid}.rescues.txt",
-        bcf=lambda w: BCF_PATH_FOR_STUDY.get(w.s_studyid, FREEZE10),
-    output:
-        bcf=protected("tmp/{s_studyid}.{chrom}.RESCUED.PASS.bcf")
 
 rule setid:
     input:
         vcf=rules.extract.output.bcf,
-    output: bcf=protected("tmp/{s_studyid}.{chrom}.annotated.bcf")
+    output:
+        #bcf=protected("tmp/{s_studyid}.{chrom}.annotated.bcf")
+        bcf="tmp/{s_studyid}.{chrom}.annotated.bcf"
     conda: "../envs/bcftools.yaml"
     shell: "bcftools annotate --set-id '%CHROM:%POS:%REF:%FIRST_ALT' -O b -o {output} {input.vcf}"
-use rule setid as setid_rescues with:
-    input:
-        vcf=rules.extract_rescued_samples.output.bcf,
-    output:
-        bcf=protected("tmp/{s_studyid}.{chrom}.annotated.rescued.bcf")
 
 rule convert_to_plink:
     input: bcf=rules.setid.output.bcf
     output:
-        bed=protected(TMP/"{s_studyid}_annotated_plink_chr{chrom}.bed"),
-        bim=protected(TMP/"{s_studyid}_annotated_plink_chr{chrom}.bim"),
-        fam=protected(TMP/"{s_studyid}_annotated_plink_chr{chrom}.fam"),
+        #bed=protected(TMP/"{s_studyid}_annotated_plink_chr{chrom}.bed"),
+        #bim=protected(TMP/"{s_studyid}_annotated_plink_chr{chrom}.bim"),
+        #fam=protected(TMP/"{s_studyid}_annotated_plink_chr{chrom}.fam"),
+        bed=TMP/"{s_studyid}_annotated_plink_chr{chrom}.bed",
+        bim=TMP/"{s_studyid}_annotated_plink_chr{chrom}.bim",
+        fam=TMP/"{s_studyid}_annotated_plink_chr{chrom}.fam",
     conda: "../envs/plink2a.yaml"
     params: out=lambda w: TMP/f"{w.s_studyid}_annotated_plink_chr{w.chrom}"
     shell:
         """plink --allow-extra-chr  --bcf {input} --make-bed --out {params.out}"""
         
-use rule convert_to_plink as convert_to_plink_rescues with:
-    input:
-        bcf=rules.setid_rescues.output.bcf
-    output:
-        bed=protected("tmp/{s_studyid}_annotated_plink_chr{chrom}_rescued.bed"),
-        bim=protected("tmp/{s_studyid}_annotated_plink_chr{chrom}_rescued.bim"),
-        fam=protected("tmp/{s_studyid}_annotated_plink_chr{chrom}_rescued.fam"),
-    params: out=lambda w: TMP/f"{w.s_studyid}_annotated_plink_chr{w.chrom}_rescued"
-
 rule merge_list:
     input:
     output: merge_list=temp('tmp/{s_studyid}.merge_list')
@@ -175,14 +169,6 @@ rule merge_list:
         with open(f'tmp/{wildcards.s_studyid}.merge_list', 'w') as fh:
             for chrom in CHROMOSOMES:
                 fh.write(f'tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}.bed tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}.bim tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}.fam\n')
-
-rule merge_list_rescues:
-    input:
-    output: merge_list=temp('tmp/{s_studyid}_rescued.merge_list')
-    run:
-        with open(f'tmp/{wildcards.s_studyid}.merge_list', 'w') as fh:
-            for chrom in CHROMOSOMES:
-                fh.write(f'tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}_rescued.bed tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}_rescued.bim tmp/{wildcards.s_studyid}_annotated_plink_chr{chrom}_rescued.fam\n')
 
 rule merge_and_filter:
     input:
@@ -200,35 +186,9 @@ rule merge_and_filter:
         maf=float(config.get('maf_filter', 0.0001)),
     shell: """plink --pmerge-list {input.merge_list} --geno {params.geno} --maf {params.maf} --make-bed --out tmp/{wildcards.s_studyid}_annotated_plink_merged_noPAR"""
 
-use rule merge_and_filter as merge_and_filter_rescues with:
-    input:
-        expand("tmp/{{s_studyid}}_annotated_plink_chr{chrom}_rescued.fam", chrom=CHROMOSOMES),
-        expand("tmp/{{s_studyid}}_annotated_plink_chr{chrom}_rescued.bim", chrom=CHROMOSOMES),
-        expand("tmp/{{s_studyid}}_annotated_plink_chr{chrom}_rescued.bed", chrom=CHROMOSOMES),
-        merge_list='tmp/{s_studyid}_rescued.merge_list',
-    output:
-        bed="tmp/{s_studyid}_annotated_plink_merged_noPAR_rescued.bed",
-        bim="tmp/{s_studyid}_annotated_plink_merged_noPAR_rescued.bim",
-        fam="tmp/{s_studyid}_annotated_plink_merged_noPAR_rescued.fam"
-
-rule merge_rescues:
-    input:
-        bed="tmp/{s_studyid}_annotated_plink_merged_noPAR.bed",
-        bim="tmp/{s_studyid}_annotated_plink_merged_noPAR.bim",
-        fam="tmp/{s_studyid}_annotated_plink_merged_noPAR.fam",
-        rescued_bed="tmp/{s_studyid}_annotated_plink_merged_noPAR_rescued.bed",
-        rescued_bim="tmp/{s_studyid}_annotated_plink_merged_noPAR_rescued.bim",
-        rescued_fam="tmp/{s_studyid}_annotated_plink_merged_noPAR_rescued.fam",
-    output:
-        bed="tmp/{s_studyid}_annotated_plink_mergedrescues_noPAR.bed",
-        bim="tmp/{s_studyid}_annotated_plink_mergedrescues_noPAR.bim",
-        fam="tmp/{s_studyid}_annotated_plink_mergedrescues_noPAR.fam",
-    conda: "../envs/plink2a.yaml"
-    shell: "plink --bfile {input.bed.splitext()[0]} --bmerge {input.rescued_bed.splitext()[0]} --out {output.bed.splitext()[0]} --make-bed"
-
 rule make_PAR_list:
     input:
-        bim="tmp/{s_studyid}_annotated_plink_mergedrescues_noPAR.bim",
+        bim="tmp/{s_studyid}_annotated_plink_merged_noPAR.bim",
     output:
         TMP/"{s_studyid}_par_newchr.txt"
     params:
@@ -242,9 +202,9 @@ rule make_PAR_list:
 
 rule annotate_PAR:
     input:
-        bed=TMP/"{s_studyid}_annotated_plink_mergedrescues_noPAR.bed",
-        bim=TMP/"{s_studyid}_annotated_plink_mergedrescues_noPAR.bim",
-        fam=TMP/"{s_studyid}_annotated_plink_mergedrescues_noPAR.fam",
+        bed=TMP/"{s_studyid}_annotated_plink_merged_noPAR.bed",
+        bim=TMP/"{s_studyid}_annotated_plink_merged_noPAR.bim",
+        fam=TMP/"{s_studyid}_annotated_plink_merged_noPAR.fam",
         parlist=TMP/"{s_studyid}_par_newchr.txt",
     output:
         bed=TMP/"{s_studyid}_annotated_plink_merged.bed",
@@ -271,9 +231,9 @@ rule create_pedigree_fam_file:
     
 rule king_duplicate_check:
     input:
-        bed=rules.merge_and_filter.output.bed,
-        bim=rules.merge_and_filter.output.bim,
-        fam=rules.merge_and_filter.output.fam,
+        bed=TMP/"{s_studyid}_annotated_plink_merged_refformat.bed",
+        bim=TMP/"{s_studyid}_annotated_plink_merged_refformat.bim",
+        fam=TMP/"{s_studyid}_annotated_plink_merged_refformat.fam",
     output: temp(TMP/"{s_studyid}_king_duplicate.con")
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"

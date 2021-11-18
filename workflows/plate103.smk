@@ -26,10 +26,14 @@ rule p103_sapphire8_sample_metadata:
     conda: "../cdnm/envs/pandas_oracle.yaml"
     script: "../scripts/python/get_sapphire8_sample_metadata.py"
 
+### FIXME: write rule for plate103 drop-list"
 rule p103_make_drop_list_1:
-    input: manifest="plate103/ANNOTATED_MANIFEST.csv"
+    input:
+        manifest="plate103/ANNOTATED_MANIFEST.csv",
+        manual_drop_list="plate103/drop.manual.txt",
+        plate103_pre_drop_list="plate103/NWDID_DROP_Plate_103.txt"
     output: "plate103/drop.txt"
-    shell: "FIXME: write rule for plate103 drop-list"
+    shell: "cat {input.manual_drop_list} {input.plate103_pre_drop_list}| sort | uniq | awk '{{print \"0\\t\"$1}}' > {output}"
 
 rule p103_remove_bad_samples:
     input:

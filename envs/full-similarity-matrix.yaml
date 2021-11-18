@@ -1,0 +1,8 @@
+name: king-similarity-matrix
+channels:
+  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda-dev-local
+  - conda-forge
+  - bioconda
+dependencies:
+  - king-similarity-matrix==1.3.6
+  

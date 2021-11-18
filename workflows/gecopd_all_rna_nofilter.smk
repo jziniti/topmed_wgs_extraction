@@ -12,41 +12,23 @@ with open('conf/all_rna_batches.txt') as fh:
 
 rule: input: TARGETS 
 
-wildcard_constraints:
-    batch='batch_.*'
-
-rule extract_keep_list:
-    input: lambda w: f'{INPUT_PATHS[w.batch].replace("bed", "fam")}'
-    output: TMP/'{batch}.keep'
-    shell: "grep 'S-' {input} > {output}"
-
-rule prepare_for_king:
-    input:
-        bed=lambda w: f'{INPUT_PATHS[w.batch]}',
-        bim=lambda w: f'{INPUT_PATHS[w.batch].replace("bed", "bim")}',
-        fam=lambda w: f'{INPUT_PATHS[w.batch].replace("bed", "fam")}',
-        keep=TMP/'{batch}.keep',
-    output: TMP/"{batch}.bed"
-    conda: "../envs/plink.yaml"
-    params: out=lambda w: TMP/f"{w.batch}",
-    shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --keep {input.keep} --out {params.out} --make-bed"
-
 rule generate_config:
     input:
-        qbed=TMP/"{batch}.bed",
+        qbed=lambda w: INPUT_PATHS[w.batch],
         rbed=TMP/"GECOPD_annotated_plink_merged.bed",
     output: TMP/"{batch}.yaml"
     params:
+        qbase=lambda w: INPUT_PATHS[w.batch].replace(".bed", ""),
         rbase=TMP/"GECOPD_annotated_plink_merged",
     run:
         with open(output[0], 'w') as fh:
-            fh.write(f'dataset_base: "tmp/{wildcards.batch}"\n')
+            fh.write(f'dataset_base: "{params.qbase}"\n')
             fh.write(f'reference_base: "{params.rbase}"\n')
             fh.write(f'output_file: "tmp/{wildcards.batch}_king.csv"\n')
 
 rule run_king_similarity_matrix:
     input:
-        qbed=TMP/"{batch}.bed",
+        qbed=lambda w: INPUT_PATHS[w.batch],
         rbed=TMP/"GECOPD_annotated_plink_merged.bed",
         config=TMP/"{batch}.yaml",
     output: TMP/"{batch}_king.csv"
