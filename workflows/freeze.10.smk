@@ -74,6 +74,8 @@ include: "glaxo_reference_prep.smk"
 include: "exome6k_preparation.smk"
 # include: "ircall_concordance.smk"
 include: "../COPD_lost_samples/Snakefile"
+include: "gecopd_all_rna.smk"
+# include: "freeze3_dbgap_submission.smk"
 
 #include: "cdnm_pca_pipeline_shim.smk"
 

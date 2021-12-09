@@ -12,6 +12,9 @@ if __name__ == '__main__':
     df_fam_annotated = df_fam_annotated.merge(df_idmap, how='left', on='S_SUBJECTID')
     df_fam_annotated = df_fam_annotated.merge(df_pheno, how='left', left_on='Pheno Id', right_on='sid')
 
-    df_fam_with_matched_race = df_fam_annotated[df_fam_annotated.race == int(snakemake.wildcards.race_code)]
+    if int(snakemake.wildcards.race_code) == 2:
+        df_fam_with_matched_race = df_fam_annotated[df_fam_annotated.race == int(snakemake.wildcards.race_code)]
+    else:
+        df_fam_with_matched_race = df_fam_annotated[df_fam_annotated.race != 2]
     df_fam_with_matched_race.to_csv(snakemake.output.keep, index=False, sep='\t', header=False, columns=('FID', 'IID'))
         

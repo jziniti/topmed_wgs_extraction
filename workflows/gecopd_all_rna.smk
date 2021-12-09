@@ -1,13 +1,15 @@
 from pathlib import Path
 
 TMP = Path('tmp')
-TARGETS = []
+TARGETS = [TMP/"GECOPD_all_rna_manifest.txt"]
+
 INPUT_PATHS = {}
+BATCH_OUTPUTS = []
 
 with open('conf/all_rna_batches.txt') as fh:
     for line in fh:
         batch = line.strip().split('/')[-3]
-        TARGETS.append(TMP/f"{batch}_king.csv")
+        BATCH_OUTPUTS.append(TMP/f"{batch}_king.csv")
         INPUT_PATHS[batch] = line.strip()
 
 rule: input: TARGETS 
@@ -52,3 +54,40 @@ rule run_king_similarity_matrix:
     output: TMP/"{batch}_king.csv"
     conda: "../envs/full-similarity-matrix.yaml"
     shell: "cdnm-wf king-similarity-matrix --config {input.config}"
+
+rule collate_rna_wgs_batch_concordance:
+    input:
+        batch_king_results=expand(TMP/"{batch}_king_rna_wgs_filtered.csv", batch=INPUT_PATHS.keys()),
+    output:
+        rna_wgs_king_results=TMP/"GECOPD_rna_wgs_king_results.csv",
+    shell: "(head -n 1 {input.batch_king_results[0]}; grep --no-filename \"S-\" {input.batch_king_results}) > {output}"
+    #shell: "(head -n 1 {input.batch_king_results[0]}; tail -n +2 {input.batch_king_results}) > {output}"
+
+#rule collate
+#    input:
+#        batch_king_results=BATCH_OUTPUTS,
+#    output:
+#        TMP/"GECOPD_rna_rna_collated_king_results.csv",
+#    shell:
+#        ""
+
+rule adjust_concordance_data_to_masterfile:
+    input:
+        masterfile='/proj/edith/regeps/regep00/studies/COPDGene/data/rnaseq/BLOOD/archivalroot/Masterfile/master.file.freeze4.txt',
+        batch=TMP/"{batch}_king.csv",
+    output:
+        csv=TMP/"{batch}_king_rna_wgs_filtered.csv",
+    script: "../scripts/python/filter_king_results_rna_wgs.py"
+
+rule read_rna_masterfile:
+    input:
+        masterfile='/proj/edith/regeps/regep00/studies/COPDGene/data/rnaseq/BLOOD/archivalroot/Masterfile/master.file.freeze4.txt',
+        ## phenofile='/proj/regeps/regep00/studies/COPDGene/data/pheno/Final10000_Dataset_12MAR13.txt',
+        phenofile='/proj/regeps/regep00/studies/COPDGene/data/pheno/COPDGene_P1P2P3_Flat_SM_NS_Nov21.txt',
+    output:
+        manifest=TMP/"GECOPD_all_rna_manifest.txt",
+        gobs="metadata/gecopd_rna_fake_gender.csv",
+        reassignments="metadata/GECOPD_rna_reassign.csv",
+    script: "../scripts/python/filter_rna_masterfile.py"
+
+

@@ -34,6 +34,25 @@ rule axiom_recode_fam_ax:
     conda: "../cdnm/envs/plink.yaml"
     shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --out {params.out} --make-bed"
 
+rule write_config:
+    params:
+        qbase="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping",
+        rbase="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03",
+    output: config=TMP/"axiom_exome_concordance.yaml",
+    shell: "echo \"dataset_base:{params.qbase}\nreference_base:{params.rbase}\noutput_file:{rules.axiom_exome_concordance.output[0]}\n\" > {output.config}"
+
+rule axiom_exome_concordance:
+    input:
+        qbed="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping.bed",
+        rbed="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03.bed",
+        config=TMP/"axiom_exome_concordance.yaml",
+    params:
+        qbase="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping",
+        rbase="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03",
+    output: TMP/"axiom_exome_concordance.csv"
+    conda: "../envs/full-similarity-matrix.yaml"
+    shell: "cdnm-wf king-similarity-matrix --query-bed={params.qbase} --reference-bed={params.rbase} --output={output[0]}"
+
 use rule duplicate_vs_reference from king as axiom_reference_concordance with:
     input:
         rbed="tmp/ICGN_AxiomGenotyping_ax_chrpos.bed",
