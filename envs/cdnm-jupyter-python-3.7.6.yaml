@@ -6,8 +6,8 @@ channels:
 dependencies:
   - matplotlib==3.4.3
   - pandas==1.2.4
-  #- jupyterlab==3.0.16
-  #- oracle-instantclient==12.2.0.1.0
+  - jupyterlab==3.0.16
+  # - oracle-instantclient==12.2.0.1.0
   #- sqlalchemy==1.4.17
   #- cx_oracle==8.2.0
   - xlrd==2.0.1

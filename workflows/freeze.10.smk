@@ -27,6 +27,8 @@ for s_studyid in STUDIES:
     #if config[s_studyid].get('run_rna_concordance', False):
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
+    for chrom in CHROMOSOMES:
+        TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freez.10_chr{chrom}.bcf')
 
 TARGETS.append(TMP/'IRCALL_exome_duplicate.con')
 TARGETS.append(TMP/'IRCALL_axiom1_duplicate.con') ### This one segfaults ... datasets too big?
@@ -60,6 +62,7 @@ wildcard_constraints:
     s_studyid='[A-Z]+'
 
 ### Modules we will be using
+include: "camp.smk"
 include: "gecopd_heterozygosity.smk"
 include: "gwas_qc_pipeline.smk"
 include: "methylation_ref_concordance.smk"
@@ -73,9 +76,10 @@ include: "cra_forced_good_sexcheck.smk"
 include: "glaxo_reference_prep.smk"
 include: "exome6k_preparation.smk"
 # include: "ircall_concordance.smk"
-include: "../COPD_lost_samples/Snakefile"
+# include: "../COPD_lost_samples/Snakefile"
 include: "gecopd_all_rna.smk"
 # include: "freeze3_dbgap_submission.smk"
+include: "eclipse.smk"
 
 #include: "cdnm_pca_pipeline_shim.smk"
 
@@ -240,19 +244,17 @@ rule king_duplicate_check:
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
 
-rule filter_and_publish:
+rule filter:
     input:
-        bed="tmp/{s_studyid}_annotated_plink_merged.bed",
-        bim="tmp/{s_studyid}_annotated_plink_merged.bim",
-        fam="tmp/{s_studyid}_annotated_plink_merged_pedigree.fam",
+        bed="tmp/{s_studyid}_annotated_plink_chr{chrom}.bed",
+        bim="tmp/{s_studyid}_annotated_plink_chr{chrom}.bim",
+        fam="tmp/{s_studyid}_annotated_plink_chr{chrom}.fam",
         rem="flags/{s_studyid}_samples.csv",
         exclude="flags/{s_studyid}_markers.csv",
     output:
-        bed="output_freezes/{s_studyid}/{s_studyid}_freeze.10.bed",
-        bim="output_freezes/{s_studyid}/{s_studyid}_freeze.10.bim",
-        fam="output_freezes/{s_studyid}/{s_studyid}_freeze.10.fam",
+        vcf=TMP/"{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.vcf.gz",
     params:
-        out="output_freezes/{wildcards.s_studyid}/{wildcards.s_studyid}_freeze.10"
+        out="tmp/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}"
     conda: "../envs/plink2a.yaml"
     shell: "plink --bed {input.bed} \
                   --bim {input.bim} \
@@ -260,4 +262,10 @@ rule filter_and_publish:
                   --remove {input.rem} \
                   --exclude {input.exclude} \
                   --out {params.out} \
-                  --make-bed"
+                  --recode vcf bgz"
+
+rule convert_and_publish:
+    input: vcf=TMP/"{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.vcf.gz",
+    output: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf"
+    conda: "../envs/bcftools.yaml"
+    shell: "bcftools convert -O b -o {output.bcf} {input.vcf}"

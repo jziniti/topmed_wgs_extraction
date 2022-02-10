@@ -3,6 +3,23 @@ min_version("6.0")
 
 TMP = Path('tmp')
 
+rule kinship_matrix_vs_reference:
+    input:
+        qbed=TMP/"{s_studyid}_annotated_plink_merged.bed",
+        rbed=lambda w: f"{config[w['s_studyid']]['known_good_reference']}.bed",
+    output:
+        csv=TMP/"{s_studyid}_reference_concordance.con"
+    params:
+        qbed=lambda w: TMP/f"{w.s_studyid}_annotated_plink_merged",
+        rbed=lambda w: f"{config[w['s_studyid']]['known_good_reference']}",
+    conda: "../envs/full-similarity-matrix.yaml"
+    shell: "cdnm-wf king-similarity-matrix \
+                        --query-bed {params.qbed}\
+                        --reference-bed {params.rbed}\
+                        --output {output.csv}"
+
+### Everything below here is the old
+
 rule convert_bim_to_civic:
     input: bim=TMP/"{s_studyid}_annotated_plink_merged.bim",
     output: bim=temp(TMP/"{s_studyid}_annotated_plink_merged_civic.bim")
@@ -41,7 +58,7 @@ use rule duplicate_vs_reference from king with:
         rbim=lambda w: f"{config[w['s_studyid']]['known_good_reference']}.bim",
         rfam=lambda w: f"{config[w['s_studyid']]['known_good_reference']}.fam",
     output:
-        kin=TMP/"{s_studyid}_reference_concordance.con",
+        kin=TMP/"{s_studyid}_reference_concordance.con.THIS_IS_THE_OLD_WAY",
     resources:
         mem_free="200G",
         mem_mb="2000",

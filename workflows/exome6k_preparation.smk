@@ -1,6 +1,8 @@
 rule exome6k_study_subset:
     input:
-        fam="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03.fam",
+        # fam="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03.fam",
+        #fam="/proj/regeps/regep00/studies/EOCOPD/data/exome/BWH_Silverman_Exome6k/data/freezes/20200417/BWH_Silverman_Exome6k_GRCh38.fam",
+        fam="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20211213/exome6kSubAndMarkCleanV03.fam",
         stashq="tmp/exome6k.stashq.txt",
     output:
         fam="tmp/{s_studyid}_exome6kSubAndMarkCleanV03.fam",
@@ -34,63 +36,82 @@ rule axiom_recode_fam_ax:
     conda: "../cdnm/envs/plink.yaml"
     shell: "plink --bed {input.bed} --bim {input.bim} --fam {input.fam} --out {params.out} --make-bed"
 
-rule write_config:
-    params:
-        qbase="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping",
-        rbase="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03",
-    output: config=TMP/"axiom_exome_concordance.yaml",
-    shell: "echo \"dataset_base:{params.qbase}\nreference_base:{params.rbase}\noutput_file:{rules.axiom_exome_concordance.output[0]}\n\" > {output.config}"
-
 rule axiom_exome_concordance:
     input:
-        qbed="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping.bed",
-        rbed="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03.bed",
-        config=TMP/"axiom_exome_concordance.yaml",
+        qbed="tmp/ICGN_AxiomGenotyping_ax_chrpos.bed",
+        rbed="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20211213/exome6kSubAndMarkCleanV03.bed",
+    output: csv=TMP/"axiom_exome_concordance.csv"
     params:
-        qbase="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping",
-        rbase="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03",
-    output: TMP/"axiom_exome_concordance.csv"
+        prefix=TMP/"axiom_exome_concordance"
     conda: "../envs/full-similarity-matrix.yaml"
-    shell: "cdnm-wf king-similarity-matrix --query-bed={params.qbase} --reference-bed={params.rbase} --output={output[0]}"
+    shell: "cdnm-wf king-similarity-matrix --bed={input.qbed},{input.rbed} --prefix={params.prefix}"
 
-use rule duplicate_vs_reference from king as axiom_reference_concordance with:
+#use rule duplicate_vs_reference from king as axiom_reference_concordance with:
+#    input:
+#        rbed="tmp/ICGN_AxiomGenotyping_ax_chrpos.bed",
+#        rbim="tmp/ICGN_AxiomGenotyping_ax_chrpos.bim",
+#        rfam="tmp/ICGN_AxiomGenotyping_ax_chrpos.fam",
+#        qbed="tmp/{s_studyid}_annotated_plink_merged_refformat.bed",
+#        qbim="tmp/{s_studyid}_annotated_plink_merged_refformat.bim",
+#        qfam="tmp/{s_studyid}_annotated_plink_merged_refformat.fam",
+#    output:
+#        kin=TMP/"{s_studyid}_axiom_concordance.con",
+#    resources:
+#        mem_free="200G",
+#        mem_mb="2000",
+#    params:
+#        Q=lambda w: f"tmp/{w.s_studyid}_annotated_plink_merged_refformat",
+#        R="tmp/ICGN_AxiomGenotyping_ax_chrpos",
+#        prefix=lambda w: TMP/f"{w.s_studyid}_axiom_concordance",
+
+rule concordance_vs_axiom:
     input:
+        qbed=TMP/"{s_studyid}_annotated_plink_merged.bed",
         rbed="tmp/ICGN_AxiomGenotyping_ax_chrpos.bed",
-        rbim="tmp/ICGN_AxiomGenotyping_ax_chrpos.bim",
-        rfam="tmp/ICGN_AxiomGenotyping_ax_chrpos.fam",
-        qbed="tmp/{s_studyid}_annotated_plink_merged_refformat.bed",
-        qbim="tmp/{s_studyid}_annotated_plink_merged_refformat.bim",
-        qfam="tmp/{s_studyid}_annotated_plink_merged_refformat.fam",
-    output:
-        kin=TMP/"{s_studyid}_axiom_concordance.con",
+    output: TMP/"{s_studyid}_axiom_concordance.csv"
+    params:
+        prefix="tmp/{s_studyid}_axiom_concordance",
     resources:
         mem_free="200G",
         mem_mb="2000",
-    params:
-        Q=lambda w: f"tmp/{w.s_studyid}_annotated_plink_merged_refformat",
-        R="tmp/ICGN_AxiomGenotyping_ax_chrpos",
-        prefix=lambda w: TMP/f"{w.s_studyid}_axiom_concordance",
+    conda: "../envs/full-similarity-matrix.yaml"
+    shell: "cdnm-wf king-similarity-matrix --bed={input.qbed},{input.rbed} --prefix={params.prefix}"
 
-use rule duplicate_vs_reference from king as exome6k_reference_concordance with:
+rule concordance_vs_exome:
     input:
-        rbed="tmp/exome6kSubAndMarkCleanV03_chrpos.bed",
-        rbim="tmp/exome6kSubAndMarkCleanV03_chrpos.bim",
-        rfam="tmp/exome6kSubAndMarkCleanV03_chrpos.fam",
-        qbed="tmp/{s_studyid}_annotated_plink_merged_refformat.bed",
-        qbim="tmp/{s_studyid}_annotated_plink_merged_refformat.bim",
-        qfam="tmp/{s_studyid}_annotated_plink_merged_refformat.fam",
-    output:
-        kin=TMP/"{s_studyid}_exome6k_concordance.con",
+        qbed=TMP/"{s_studyid}_annotated_plink_merged.bed",
+        #rbed=TMP/"exome6kSubAndMarkCleanV03.bed",
+        #rbed="/proj/regeps/regep00/studies/EOCOPD/data/exome/BWH_Silverman_Exome6k/data/freezes/20200417/BWH_Silverman_Exome6k_GRCh38.bed",
+        rbed="/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20211213/exome6kSubAndMarkCleanV03.bed"
+    output: TMP/"{s_studyid}_exome_concordance.csv"
+    params:
+        prefix="tmp/{s_studyid}_exome_concordance",
     resources:
         mem_free="200G",
         mem_mb="2000",
-    params:
-        Q=lambda w: f"tmp/{w.s_studyid}_annotated_plink_merged_refformat",
-        R="tmp/exome6kSubAndMarkCleanV03_chrpos",
-        prefix=lambda w: TMP/f"{w.s_studyid}_exome6k_concordance",
+    conda: "../envs/full-similarity-matrix.yaml"
+    shell: "cdnm-wf king-similarity-matrix --bed={input.qbed},{input.rbed} --prefix={params.prefix}"
 
-"""
-## fam="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping.fam",
+#use rule duplicate_vs_reference from king as exome6k_reference_concordance with:
+#    input:
+#        rbed="tmp/exome6kSubAndMarkCleanV03_chrpos.bed",
+#        rbim="tmp/exome6kSubAndMarkCleanV03_chrpos.bim",
+#        rfam="tmp/exome6kSubAndMarkCleanV03_chrpos.fam",
+#        qbed="tmp/{s_studyid}_annotated_plink_merged_refformat.bed",
+#        qbim="tmp/{s_studyid}_annotated_plink_merged_refformat.bim",
+#        qfam="tmp/{s_studyid}_annotated_plink_merged_refformat.fam",
+#    output:
+#        kin=TMP/"{s_studyid}_exome6k_concordance.con",
+#    resources:
+#        mem_free="200G",
+#        mem_mb="2000",
+#    params:
+#        Q=lambda w: f"tmp/{w.s_studyid}_annotated_plink_merged_refformat",
+#        R="tmp/exome6kSubAndMarkCleanV03_chrpos",
+#        prefix=lambda w: TMP/f"{w.s_studyid}_exome6k_concordance",
+#
+#"""
+### fam="/proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping.fam",
 ### stashq subject `cut -d " " -f 2 /proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03.fam` > ../tmp/exome6k.stashq.txt
 ### stashq subject `cut -d " " -f 2 /proj/regeps/regep00/studies/ICGN/data/dna/whole_genome/AxiomGenotyping/data/freezes/20191011/ICGN_AxiomGenotyping.fam` > ../tmp/Axiom.stashq.txt
-"""
+#"""
