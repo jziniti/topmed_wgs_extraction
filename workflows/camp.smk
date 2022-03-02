@@ -1,6 +1,6 @@
 module camp_methylation_concordance:
     snakefile: "../850K_qc_pipeline/workflows/external-reference-concordance.smk"
-    config: config['CAMP']
+    config: config.get('CAMP', {'external_reference_base': '', 'batch_count':0})
     # config: config
 
 use rule * from camp_methylation_concordance as camp_mrc_* 

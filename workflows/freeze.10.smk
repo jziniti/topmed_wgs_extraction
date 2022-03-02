@@ -28,7 +28,8 @@ for s_studyid in STUDIES:
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
     for chrom in CHROMOSOMES:
-        TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freez.10_chr{chrom}.bcf')
+        TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf')
+        TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi')
 
 TARGETS.append(TMP/'IRCALL_exome_duplicate.con')
 TARGETS.append(TMP/'IRCALL_axiom1_duplicate.con') ### This one segfaults ... datasets too big?
@@ -244,12 +245,21 @@ rule king_duplicate_check:
     conda: "../envs/king.yaml"
     shell: "king -b {input.bed} --duplicate --prefix tmp/{wildcards.s_studyid}_king_duplicate"
 
+rule collate_removed_samples:
+    input:
+        manifest="multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv",
+        flags=FLAGS/'{s_studyid}_samples.csv',
+    output:
+        txt="tmp/{s_studyid}/remove_samples.txt",
+        csv="output_freezes/{s_studyid}/samples_removed.csv",
+    script: "../scripts/python/collate_removed_samples.py"
+
 rule filter:
     input:
         bed="tmp/{s_studyid}_annotated_plink_chr{chrom}.bed",
         bim="tmp/{s_studyid}_annotated_plink_chr{chrom}.bim",
         fam="tmp/{s_studyid}_annotated_plink_chr{chrom}.fam",
-        rem="flags/{s_studyid}_samples.csv",
+        rem="tmp/{s_studyid}/remove_samples.txt",
         exclude="flags/{s_studyid}_markers.csv",
     output:
         vcf=TMP/"{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.vcf.gz",
@@ -269,3 +279,15 @@ rule convert_and_publish:
     output: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf"
     conda: "../envs/bcftools.yaml"
     shell: "bcftools convert -O b -o {output.bcf} {input.vcf}"
+
+rule index:
+    input: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf",
+    output: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi"
+    conda: "../envs/bcftools.yaml"
+    shell: "bcftools index -s -f -c {input.bcf}"
+
+rule publish_all:
+    input:
+        bcfs=expand(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES),
+        indexes=expand(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi', s_studyid=STUDIES, chrom=CHROMOSOMES),
+

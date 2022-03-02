@@ -42,9 +42,12 @@ rule generate_config:
         rbase=TMP/"GECOPD_annotated_plink_merged",
     run:
         with open(output[0], 'w') as fh:
-            fh.write(f'dataset_base: "tmp/{wildcards.batch}"\n')
-            fh.write(f'reference_base: "{params.rbase}"\n')
-            fh.write(f'output_file: "tmp/{wildcards.batch}_king.csv"\n')
+            fh.write(f'query_bed: "tmp/{wildcards.batch}.bed"\n')
+            fh.write(f'reference_bed: "{params.rbase}.bed"\n')
+            fh.write(f'prefix: "tmp/{wildcards.batch}_king.csv"\n')
+            #fh.write(f'dataset_base: "tmp/{wildcards.batch}"\n')
+            #fh.write(f'reference_base: "{params.rbase}"\n')
+            #fh.write(f'output_file: "tmp/{wildcards.batch}_king.csv"\n')
 
 rule run_king_similarity_matrix:
     input:
