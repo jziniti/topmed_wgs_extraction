@@ -93,4 +93,30 @@ rule read_rna_masterfile:
         reassignments="metadata/GECOPD_rna_reassign.csv",
     script: "../scripts/python/filter_rna_masterfile.py"
 
+rule merge_resta_king_results:
+    input:
+        manifest="tmp/GECOPD_all_rna_manifest.txt",
+        king_results = [
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_201221_NB551475_0238_AHNKL7BGXG_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_201223_NB552221_0052_AH3FJFBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_201228_NB552221_0053_AH3G3VBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210114_NB552221_0059_AHC3HLBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210129_NB552221_0061_AHC53FBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210202_NB551475_0245_AHGNFWBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210202_NB552221_0062_AHGNH2BGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210204_NB551475_0246_AHC5H7BGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210204_NB552221_0063_AHH3J5BGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210206_NB552221_0064_AHHGC5BGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210208_NB552221_0065_AHGN2TBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210209_NB551475_0249_AHGVGWBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210301_NB551475_0252_AHNCT3BGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210301_NB552221_0069_AHNFFMBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210302_NB551475_0253_AHNCVYBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210302_NB552221_0070_AHNFFTBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210318_NB551475_0256_AHNFFHBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_210318_NB552221_0073_AHNG7GBGXH_grch38_gtf/king.csv',
+        '/udd/resta/COPDGene_rna_mrna_star_alignment_qc/rnaseq_qc_app/data/COPDGene_211007_NB552221_0097_AH53HHBGXK_grch38_gtf/king.csv',
+        ]
+    output: df="tmp/GECOPD_rna_wgs_resta_king_results.csv"
+    script: "../scripts/python/merge_resta_king_results.py"
 

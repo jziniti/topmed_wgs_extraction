@@ -1,0 +1,742 @@
+{
+    "GECOPD": {
+        "run_multiomics_qc": true,
+        "external_reference_base": "/proj/regeps/regep00/studies/COPDGene/data/genotype/data/freezes/king_ref_GRCh38/king_ref_GRCh38",
+        "refformat": "chrpos",
+        "king_reference": "/proj/regeps/regep00/studies/COPDGene/data/genotype/data/freezes/king_ref_GRCh38/king_ref_GRCh38",
+        "output_base": "methylation_ref_concordance/gecopd_freeze.10_concordance_report",
+        "batch_count": 12,
+        "methylation_batch_count": 12,
+        "known_good_reference": "/proj/regeps/regep00/studies/COPDGene/data/genotype/data/freezes/king_ref_GRCh38/king_ref_GRCh38",
+        "run_methylation_concordance": true,
+        "methylation_freeze_path": "/proj/regeps/regep00/studies/GECOPD/data/methylation/TopMed/data/freezes/20200706/LEVEL2/",
+        "run_reference_concordance": true,
+        "run_qc_notebook": true,
+        "run_rna_concordance": true,
+        "run_pca_pipeline": true,
+        "#vcf_sample_map": "/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/bcbio_ea/conf/bam_sample_map_all.txt",
+        "vcf_sample_map": "GECOPD.rna_calls.txt",
+        "manual_flags": [
+            "plate103/manual_flags.csv",
+            "multiomics/GECOPD/manual_flags_rejpz_20211220.csv",
+            "multiomics/GECOPD/complex_pairsCho20220205_munged.csv"
+        ],
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/GECOPD_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a.irc/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/GECOPD_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "ref",
+                "manifest_path": "/proj/regeps/regep00/studies/COPDGene/data/genotype/data/freezes/king_ref_GRCh38/king_ref_GRCh38.fam",
+                "load_into_spot": false,
+                "sample_type_code": "d",
+                "gender_observations": "/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/topmed_multiomics_qc/unified.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 2,
+                "name": "methylation",
+                "manifest_path": "/proj/regeps/regep00/studies/GECOPD/data/methylation/TopMed/data/freezes/20200706/LEVEL1/SampleSheet.csv",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/GECOPD/data/methylation/TopMed/data/raw/",
+                "sample_type_code": "m",
+                "gender_observations": "/udd/resiq/meffil/QC/COPD.blood/COPD.sex.summary.csv",
+                "gender_observations_sample_column": "sample.name",
+                "gender_observations_column": "predicted.sex",
+                "gender_observations_delim_whitespace": false
+          },
+          {
+              "id": 3,
+              "name": "rna",
+              "manifest_path": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/TOPMED/data/TOPMED_11.19.2019/freezes/freeze1/masterfile/COPDGENE_TOPMED_blood_masterfile_6.2.20.tsv",
+              "manifest_type": "topmed_rna",
+              "load_into_spot": true,
+              "spot_path": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/TOPMED/data/TOPMED_11.19.2019/",
+              "alias_column": "TORID",
+              "sample_type_code": "r",
+              "resultid_lookup": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/data/raw/topmed_transfer_batches/TOPMED_11.19.2019/manifests/lookup_silverman_topmed_to3_rnaseq_1.csv",
+              "gender_observations": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/TOPMED/data/TOPMED_11.19.2019/freezes/freeze1/masterfile/COPDGENE_TOPMED_blood_masterfile_6.2.20.tsv",
+              "gender_observations_sample_column": "Sample",
+              "gender_observations_column": "expsex",
+              "gender_observations_delim_whitespace": true
+        },
+        {
+            "id": 4,
+            "name": "rnaseq",
+            "manifest_path": "tmp/GECOPD_all_rna_manifest.txt",
+            "manifest_type": "custom",
+            "sample_label_column": "SampleLabel",
+            "delimiter": ",",
+            "load_into_spot": true,
+            "spot_path": "",
+            "sample_type_code": "q",
+            "gender_observations": "metadata/gecopd_rna_fake_gender.csv",
+            "gender_observations_sample_column": "SampleLabel",
+            "gender_observations_column": "ObservedGender",
+            "gender_observations_delim_whitespace": false
+      }
+  ],
+        "concordance_observations": [
+            {
+                "path": "tmp/GECOPD_reference_concordance.con",
+                "type": "raw",
+                "cutoff": 0.354,
+                "query_dataset": 0,
+                "reference_dataset": 1,
+                "concord_column_label": "Concord"
+            },
+            {
+              "path": "tmp/GECOPD_methylation_freeze10.kin0",
+              "type": "raw",
+              "cutoff": 0.8,
+              "query_dataset": 2,
+              "reference_dataset": 0,
+              "concord_column_label": "Kinship"
+            },
+            {
+                "path": "/proj/regeps/regep00/studies/GECOPD/data/methylation/TopMed/data/freezes/20200706/LEVEL2/pairwise_concordance.csv",
+                "type": "summarized",
+                "cutoff": 80,
+                "query_dataset": 2,
+                "reference_dataset": 2,
+                "best_sample_column_label": "Best_Match",
+                "best_match_column_label": "Best_Pct",
+                "next_sample_column_label": "Next_Best",
+                "next_match_column_label": "Next_Pct"
+            },
+            {
+                "path": "tmp/GECOPD_reference_concordance.con",
+                "type": "raw",
+                "cutoff": 0.354,
+                "query_dataset": 1,
+                "reference_dataset": 1,
+                "concord_column_label": "Concord"
+            },
+            {
+                "path": "tmp/GECOPD_rna_wgs_king_results.csv",
+                "type": "kinship-matrix",
+                "sample_label_column": "IID_orig_x",
+                "best_sample_column_label": "BAM_file",
+                "best_match_column_label": "Kinship",
+                "concord_column_label": "Kinship",
+                "cutoff": 0.15,
+                "query_dataset": 4,
+                "reference_dataset": 0
+            },
+            {
+                "path": "tmp/GECOPD_rna_rna_collated_king_results.csv",
+                "type": "kinship-matrix",
+                "sample_label_column": "IID_orig_x",
+                "best_sample_column_label": "IID_orig_y",
+                "best_match_column_label": "Kinship",
+                "concord_column_label": "Kinship",
+                "cutoff": 0.354,
+                "query_dataset": 4,
+                "reference_dataset": 0
+            },
+            {
+                "path": "/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/bcbio_ea/speed_mode/king_results_summary_munged.csv",
+                "type": "summarized",
+                "sample_label_column": "Sample",
+                "best_sample_column_label": "Best Match",
+                "best_match_column_label": "KC",
+                "concord_column_label": "KC",
+                "cutoff": 0.354,
+                "query_dataset": 3,
+                "reference_dataset": 1
+            },
+            {
+                "path": "/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/topmed_blood_bcbio_king/king_results_summary_short.csv",
+                "type": "summarized",
+                "sample_label_column": "Sample",
+                "best_sample_column_label": "Best Match",
+                "best_match_column_label": "KC",
+                "concord_column_label": "KC",
+                "next_sample_column_label": "Next Best",
+                "next_match_column_label": "KC_Next",
+                "cutoff": 0.354,
+                "query_dataset": 3,
+                "reference_dataset": 1
+            },
+            {
+                "path": "tmp/GECOPD_rna_wgs_resta_king_results.csv",
+                "type": "kinship-matrix",
+                "sample_label_column": "SampleLabel",
+                "best_sample_column_label": "ID2",
+                "best_match_column_label": "Kinship",
+                "concord_column_label": "Kinship",
+                "cutoff": 0.354,
+                "query_dataset": 4,
+                "reference_dataset": 0
+            },
+    ]
+    },
+    "CAMP": {
+        "run_multiomics_qc": true,
+        "run_reference_concordance": true,
+        "known_good_reference": "/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/CAMP_FULL_MERGE_UMich/data/freezes/20210928/CAMP_civic",
+        "external_reference_base": "/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/CAMP_FULL_MERGE_UMich/data/freezes/20210928/CAMP_civic_850K_control_snps",
+        "batch_count": 2,
+        "methylation_batch_count": 2,
+        "refformat": "civic",
+        "run_methylation_concordance": true,
+        "methylation_freeze_path": "/proj/regeps/regep00/studies/CAMP/data/epigenetic/methylation/TopMed/data/freezes/20200117/LEVEL2/",
+        "run_pca_pipeline": true,
+        "input_filter_genotyped": false,
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/CAMP_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/CAMP_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "ref",
+                "manifest_path": "  ",
+                "load_into_spot": false,
+                "sample_type_code": "d",
+                "__gender_observations": "/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/CAMP_FULL_MERGE_UMich/data/freezes/20210928/CAMP_civic.sexcheck",
+                "gender_observations": "/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/CAMP_FULL_MERGE/data/freezes/CAMP_FULL_MERGE_ST.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+              "id": 2,
+              "name": "methylation",
+              "manifest_path": "/proj/regeps/regep00/studies/CAMP/data/methylation/TopMed/data/freezes/20200117/LEVEL1/SampleSheet.csv",
+              "load_into_spot": true,
+              "spot_path": "/proj/regeps/regep00/studies/CAMP/data/methylation/TopMed/data/raw/",
+              "sample_type_code": "m",
+              "alias_column": "ALIAS",
+              "gender_observations": "/proj/regeps/regep00/studies/CAMP/data/methylation/TopMed/data/freezes/20200117/LEVEL2/estimated_sex.csv",
+              "gender_observations_sample_column": "Unnamed: 0",
+              "gender_observations_column": "predictedSex",
+              "gender_observations_delim_whitespace": false
+          }
+        ],
+        "concordance_observations": [
+            {
+                "path": "tmp/CAMP_reference_concordance.con",
+                "type": "raw",
+                "cutoff": 0.354,
+                "query_dataset": 0,
+                "reference_dataset": 1,
+                "concord_column_label": "Concord"
+            },
+            {
+              "path": "tmp/CAMP_methylation_freeze10.kin0",
+              "type": "raw",
+              "cutoff": 0.8,
+              "query_dataset": 2,
+              "reference_dataset": 0,
+              "concord_column_label": "Kinship"
+          },
+          {
+              "path": "/proj/regeps/regep00/studies/CAMP/data/methylation/TopMed/data/freezes/20200117/LEVEL2/pairwise_concordance.csv",
+              "type": "summarized",
+              "cutoff": 80,
+              "query_dataset": 2,
+              "reference_dataset": 2,
+              "best_sample_column_label": "Best_Match",
+              "best_match_column_label": "Best_Pct",
+              "next_sample_column_label": "Next_Best",
+              "next_match_column_label": "Next_Pct"
+          },
+          {
+              "path": "tmp/CAMP_methylation_gwas_concordance.kin0",
+              "type": "raw",
+              "cutoff": 0.8,
+              "query_dataset": 2,
+              "reference_dataset": 1,
+              "concord_column_label": "Kinship"
+          }
+        ]
+    },
+    "CRA": {
+        "run_multiomics_qc": true,
+        "run_methylation_concordance": true,
+        "methylation_freeze_path": "/proj/regeps/regep00/studies/CRA/data/epigenetic/methylation/TopMed/data/freezes/20200117/LEVEL2/",
+        "batch_count": 1,
+        "methylation_batch_count": 1,
+        "run_pca_pipeline": true,
+        "known_good_reference": "/proj/regeps/regep00/studies/CRA/data/dna/whole_genome/2013_CRA_GWAS_UMich/data/freezes/20211210_GRCh38/2013_CRA_GWAS_FULL_MERGE",
+        "refformat": "civic",
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/CRA_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/CRA_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "ref",
+                "manifest_path": "/proj/regeps/regep00/studies/CRA/data/dna/whole_genome/2013_CRA_GWAS_UMich/data/freezes/20190523_CIVIC/2013_CRA_civic.fam",
+                "sample_type_code": "d",
+                "gender_observations": "tmp/2013_CRA_civic.forced_good_sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": false
+            },
+            {
+                "id": 2,
+                "name": "methylation",
+                "manifest_path": "/proj/regeps/regep00/studies/CRA/data/epigenetic/methylation/TopMed/data/freezes/20200117/LEVEL1/SampleSheet.csv",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/CRA/data/methylation/TopMed/data/raw/",
+                "sample_type_code": "m",
+                "gender_observations": "/proj/regeps/regep00/studies/CRA/data/epigenetic/methylation/TopMed/data/freezes/20200117/LEVEL2/estimated_sex.csv",
+                "gender_observations_sample_column": "Unnamed: 0",
+                "gender_observations_column": "predictedSex",
+                "gender_observations_delim_whitespace": false
+          }
+      ],
+      "concordance_observations": [
+        {
+            "path": "tmp/CRA_reference_concordance.con",
+            "type": "raw",
+            "cutoff": 0.354,
+            "delimiter": ",",
+            "query_dataset": 0,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "/proj/regeps/regep00/studies/CRA/data/epigenetic/methylation/TopMed/data/freezes/20200117/LEVEL2/pairwise_concordance.csv",
+            "type": "summarized",
+            "cutoff": 80,
+            "query_dataset": 2,
+            "reference_dataset": 2,
+            "best_sample_column_label": "Best_Match",
+            "best_match_column_label": "Best_Pct",
+            "next_sample_column_label": "Next_Best",
+            "next_match_column_label": "Next_Pct"
+        },
+        {
+            "path": "tmp/CRA_reference_concordance.con",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 0,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "/proj/regeps/regep00/studies/CRA/data/epigenetic/methylation/TopMed/data/freezes/20200117/external-reference-concordance.csv",
+            "type": "csv",
+            "cutoff": 80,
+            "query_dataset": 2,
+            "reference_dataset": 1,
+            "delimiter": ",",
+            "sample_label_column": "Sample",
+            "best_sample_column_label": "Best_Match",
+            "concord_column_label": "Best_Pct"
+        },
+          {
+            "path": "tmp/CRA_methylation_freeze10.kin0",
+            "type": "raw",
+            "cutoff": 0.8,
+            "query_dataset": 2,
+            "reference_dataset": 0,
+            "concord_column_label": "Kinship"
+        }
+      ]
+    },
+
+    "PLCOPD": {
+        "run_pca_pipeline": true,
+        "known_good_reference": "tmp/ICGN_AxiomGenotyping_chrpos",
+        "refformat": "chrpos",
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/PLCOPD_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a.irc/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/PLCOPD_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "exome",
+                "manifest_path": "tmp/PLCOPD_exome6kSubAndMarkCleanV03.fam",
+                "sample_type_code": "x",
+                "gender_observations": "tmp/exome6kSubAndMarkCleanV03.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 2,
+                "name": "axiom",
+                "manifest_path": "tmp/PLCOPD_ICGN_AxiomGenotyping.fam",
+                "sample_type_code": "d",
+                "remove_prepend_sample_label": "ax:",
+                "gender_observations": "tmp/ICGN_AxiomGenotyping_ax_chrpos.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            }
+      ],
+      "concordance_observations": [
+        {
+            "path": "tmp/PLCOPD_exome_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "tmp/PLCOPD_axiom_concordance.con",
+            "type": "raw",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 2,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "tmp/axiom_exome_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 2,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        }
+      ]
+    },
+
+    "EOCOPD": {
+        "run_multiomics_qc": true,
+        "known_good_reference": "tmp/exome6kSubAndMarkCleanV03",
+        "refformat": "chrpos",
+        "run_pca_pipeline": true,
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/EOCOPD_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a.irc/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/EOCOPD_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "exome",
+                "manifest_path": "tmp/EOCOPD_exome6kSubAndMarkCleanV03.fam",
+                "sample_type_code": "x",
+                "gender_observations": "tmp/exome6kSubAndMarkCleanV03.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 2,
+                "name": "axiom",
+                "manifest_path": "tmp/EOCOPD_ICGN_AxiomGenotyping.fam",
+                "sample_type_code": "d",
+                "gender_observations": "tmp/ICGN_AxiomGenotyping_ax_chrpos.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            }
+      ],
+      "concordance_observations": [
+        {
+            "path": "tmp/EOCOPD_exome_concordance.con",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "tmp/EOCOPD_axiom_concordance.con",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 2,
+            "concord_column_label": "Concord"
+        },
+        {
+            "path": "tmp/axiom_exome_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 2,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        }
+
+      ]
+    },
+
+    "ECLPSE": {
+        "run_multiomics_qc": true,
+        "run_reference_concordance": true,
+        "known_good_reference": "/proj/regeps/regep00/studies/ECLIPSE/data/imputed/ECLIPSE_HRC1-1/data/freezes/20210929/eclipseHrc11",
+        "run_pca_pipeline": true,
+        "input_filter_genotyped": false,
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/ECLPSE_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a.irc/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/ECLPSE_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "exome",
+                "manifest_path": "/proj/regeps/regep00/studies/EOCOPD/data/dna/exome_chip/BWH_Silverman_Exome6k/data/freezes/20150315/exome6kSubAndMarkCleanV03.fam",
+                "sample_type_code": "x",
+                "gender_observations": "tmp/exome6kSubAndMarkCleanV03.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 2,
+                "name": "hrc",
+                "manifest_path": "/proj/regeps/regep00/studies/ECLIPSE/data/imputed/ECLIPSE_HRC1-1/data/freezes/20210929/eclipseHrc11.fam",
+                "sample_type_code": "i",
+                "gender_observations": "/proj/regeps/regep00/studies/ECLIPSE/data/imputed/ECLIPSE_HRC1-1/data/freezes/20210929/eclipseHrc11.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            }
+      ],
+      "concordance_observations": [
+        {
+            "path": "tmp/ECLPSE_exome_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 1,
+            "concord_column_label": "Concord"
+        },
+        {
+            "path": "tmp/ECLPSE_hrcimpute_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 2,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "tmp/axiom_exome_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 2,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        }
+    ]
+    },
+
+    "GLAXO": {
+        "run_multiomics_qc": true,
+        "run_reference_concordance": true,
+        "run_rna_concordance": false,
+        "run_pca_pipeline": true,
+        "known_good_reference": "tmp/ICGN_AxiomGenotyping_chrpos",
+        "refformat": "chrpos",
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/GLAXO_annotated_plink_merged.fam",
+                "load_into_spot": true,
+                "spot_path": "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a.irc/",
+                "sample_type_code": "w",
+                "gender_observations": "tmp/GLAXO_annotated_plink_merged.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "axiom",
+                "manifest_path": "tmp/GLAXO_ICGN_AxiomGenotyping.fam",
+                "sample_type_code": "d",
+                "gender_observations": "tmp/ICGN_AxiomGenotyping_ax_chrpos.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 2,
+                "name": "exome",
+                "manifest_path": "tmp/GLAXO_exome6kSubAndMarkCleanV03.fam",
+                "sample_type_code": "x",
+                "gender_observations": "tmp/exome6kSubAndMarkCleanV03.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            }
+        
+      ],
+      "concordance_observations": [
+        {
+            "path": "tmp/GLAXO_exome_concordance.csv",
+            "type": "raw",
+            "cutoff": 0.354,
+            "delimiter": ",",
+            "query_dataset": 0,
+            "reference_dataset": 2,
+            "concord_column_label": "Kinship"
+        },
+        {
+            "path": "tmp/GLAXO_axiom_concordance.con",
+            "type": "raw",
+            "cutoff": 0.354,
+            "query_dataset": 0,
+            "reference_dataset": 1,
+            "concord_column_label": "Concord"
+        },
+        {
+            "path": "tmp/axiom_exome_concordance.csv",
+            "type": "raw",
+            "delimiter": ",",
+            "cutoff": 0.354,
+            "query_dataset": 2,
+            "reference_dataset": 1,
+            "concord_column_label": "Kinship"
+        }
+      ]
+    },
+    "GECOPD.1": {
+        "run_multiomics_qc": true,
+        "s_studyid": "GECOPD",
+        "datasets": [
+            {
+                "id": 0,
+                "name": "wgs",
+                "manifest_path": "tmp/GECOPD_annotated_plink_merged_1.fam",
+                "sample_type_code": "d",
+                "gender_observations": "tmp/GECOPD_annotated_plink_merged_1.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+                "id": 1,
+                "name": "ref",
+                "manifest_path": "/proj/regeps/regep00/studies/COPDGene/data/genotype/data/freezes/king_ref_GRCh38/king_ref_GRCh38.fam",
+                "sample_type_code": "d",
+                "gender_observations": "/proj/regeps/regep00/studies/COPDGene/analyses/rejpz/topmed_multiomics_qc/unified.sexcheck",
+                "gender_observations_sample_column": "IID",
+                "gender_observations_column": "SNPSEX",
+                "gender_observations_delim_whitespace": true
+            },
+            {
+              "id": 2,
+              "name": "methylation",
+              "manifest_path": "/proj/regeps/regep00/studies/GECOPD/data/methylation/TopMed/data/freezes/20200706/LEVEL1/SampleSheet.csv",
+              "sample_type_code": "m",
+              "gender_observations": "/proj/regeps/regep00/studies/COPDGene/data/epigenetic/methylation/TopMed/data/freezes/20200706/resiq/LEVEL2/estimated_sex.csv",
+              "gender_observations_sample_column": "Unnamed: 0",
+              "gender_observations_column": "predictedSex",
+              "gender_observations_delim_whitespace": false
+          },
+          {
+            "id": 3,
+            "name": "rna",
+            "manifest_path": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/TOPMED/data/TOPMED_11.19.2019/freezes/freeze1/masterfile/COPDGENE_TOPMED_blood_masterfile_6.2.20.tsv",
+            "manifest_type": "topmed_rna",
+            "sample_type_code": "r",
+            "alias_column": "Sample",
+            "resultid_lookup": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/data/raw/topmed_transfer_batches/TOPMED_11.19.2019/manifests/lookup_silverman_topmed_to3_rnaseq_1.csv",
+            "gender_observations": "/proj/regeps/regep00/studies/COPDGene/data/rna/mrna/blood_shortread/TOPMED/data/TOPMED_11.19.2019/freezes/freeze1/masterfile/COPDGENE_TOPMED_blood_masterfile_6.2.20.tsv",
+            "gender_observations_sample_column": "Sample",
+            "gender_observations_column": "expsex",
+            "gender_observations_delim_whitespace": true
+        }
+    ],
+        "concordance_observations": [
+            {
+                "path": "tmp/GECOPD_reference_concordance.con",
+                "type": "raw",
+                "cutoff": 0.354,
+                "query_dataset": 0,
+                "reference_dataset": 1,
+                "concord_column_label": "Concord"
+            },
+            {
+              "path": "tmp/GECOPD_methylation_freeze10.kin0",
+              "type": "raw",
+              "cutoff": 0.8,
+              "query_dataset": 2,
+              "reference_dataset": 0,
+              "concord_column_label": "Kinship"
+          },
+          {
+              "path": "/proj/regeps/regep00/studies/GECOPD/data/methylation/TopMed/data/freezes/20200706/LEVEL2/pairwise_concordance.csv",
+              "type": "summarized",
+              "cutoff": 80,
+              "query_dataset": 2,
+              "reference_dataset": 2,
+              "best_sample_column_label": "Best_Match",
+              "best_match_column_label": "Best_Pct",
+              "next_sample_column_label": "Next_Best",
+              "next_match_column_label": "Next_Pct"
+          },
+          {
+            "path": "tmp/GECOPD_reference_concordance.con",
+            "type": "raw",
+            "cutoff": 0.354,
+            "query_dataset": 1,
+            "reference_dataset": 1,
+            "concord_column_label": "Concord"
+        }
+      ]
+    }
+
+}
+
