@@ -3,8 +3,8 @@ min_version("6.0")
 
 TMP = Path('tmp')
 
-TARGETS.append('ANNOTATED_MANIFEST.csv')
-rule: input: TARGETS
+## TARGETS.append('ANNOTATED_MANIFEST.csv')
+## rule: input: TARGETS
 
 module multiomics: 
     snakefile: "../topmed_multiomics_qc/workflows/multiomics_qc.smk"

@@ -1,4 +1,6 @@
+import datetime
 from snakemake.utils import validate
+import sys
 
 ## validate(config, "../schema/config.schema.yaml")
 
@@ -7,6 +9,9 @@ CHROMOSOMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "1
 FREEZE9B = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.9b/minDP10/freeze.9b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10 = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/minDP10/freeze.10a.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
 FREEZE10_IRC = '/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10b.irc/minDP10/freeze.10b.chr{chrom}.pass_and_fail.gtonly.minDP10.bcf'
+
+CMDLINE = ' '.join(sys.argv)
+TIMESTAMP = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 TMP = Path('tmp')
 NOTEBOOKS = Path('notebook_logs')
@@ -27,17 +32,21 @@ for s_studyid in STUDIES:
     #if config[s_studyid].get('run_rna_concordance', False):
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.html')
     #    TARGETS.append(TMP/f'{s_studyid}_rna_king_results_summary.csv')
+    TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10.pep.yaml')
+    TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10.pep.csv')
+    TARGETS.append(f'output_freezes/{s_studyid}/md5sums.txt')
     for chrom in CHROMOSOMES:
         TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf')
         TARGETS.append(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi')
 
-TARGETS.append(TMP/'IRCALL_exome_duplicate.con')
-TARGETS.append(TMP/'IRCALL_axiom1_duplicate.con') ### This one segfaults ... datasets too big?
-TARGETS.append(TMP/'IRCALL_GECOPD_duplicate.con')
-TARGETS.append(TMP/'IRCALL_CAMP_duplicate.con')
-TARGETS.append(TMP/'IRCALL_CRA_duplicate.con')
-TARGETS.append(TMP/'IRCALL_ECLPSE_duplicate.con')
-TARGETS.append(TMP/"COPD_lost_samples_rendered.Rmd")
+## I'm not sure if these are needed anymore ...
+#TARGETS.append(TMP/'IRCALL_exome_duplicate.con')
+#TARGETS.append(TMP/'IRCALL_axiom1_duplicate.con') ### This one segfaults ... datasets too big?
+#TARGETS.append(TMP/'IRCALL_GECOPD_duplicate.con')
+#TARGETS.append(TMP/'IRCALL_CAMP_duplicate.con')
+#TARGETS.append(TMP/'IRCALL_CRA_duplicate.con')
+#TARGETS.append(TMP/'IRCALL_ECLPSE_duplicate.con')
+#TARGETS.append(TMP/"COPD_lost_samples_rendered.Rmd")
 
 BCF_PATH_FOR_STUDY = {
     'GECOPD': FREEZE10,
@@ -63,28 +72,33 @@ wildcard_constraints:
     s_studyid='[A-Z]+'
 
 ### Modules we will be using
-include: "camp.smk"
-include: "gecopd_heterozygosity.smk"
+if "CAMP" in config.keys():
+    include: "camp.smk"
+
+if 'GECOPD' in config.keys():
+    include: "gecopd_heterozygosity.smk"
+    include: "plate103.smk"
+    # include: "ircall_concordance.smk"
+    # include: "../COPD_lost_samples/Snakefile"
+    # include: "gecopd_all_rna.smk"
+    # include: "freeze3_dbgap_submission.smk"
+    ## include: "rnaseq_concordance.smk"
+if 'ECLPSE' in config.keys():
+    include: "eclipse.smk"
+
 include: "gwas_qc_pipeline.smk"
 include: "methylation_ref_concordance.smk"
 include: "run_qc_notebook.smk"
 include: "multiomics.smk"
-include: "plate103.smk"
-include: "rnaseq_concordance.smk"
 include: "duplicate_vs_reference.smk"
 include: "eocopd_exome_sexcheck.smk"
 include: "cra_forced_good_sexcheck.smk"
 include: "glaxo_reference_prep.smk"
 include: "exome6k_preparation.smk"
-# include: "ircall_concordance.smk"
-# include: "../COPD_lost_samples/Snakefile"
-include: "gecopd_all_rna.smk"
-# include: "freeze3_dbgap_submission.smk"
-include: "eclipse.smk"
 
 #include: "cdnm_pca_pipeline_shim.smk"
 
-rule done: input: TARGETS
+rule all: input: TARGETS
 
 rule stashq:
     input: "/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.{freeze}/manifests/nwdids.txt"
@@ -276,18 +290,38 @@ rule filter:
 
 rule convert_and_publish:
     input: vcf=TMP/"{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.vcf.gz",
-    output: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf"
+    output:
+        bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf",
+        csi="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi",
     conda: "../envs/bcftools.yaml"
-    shell: "bcftools convert -O b -o {output.bcf} {input.vcf}"
+    shell: """bcftools convert -O b -o {output.bcf} {input.vcf}; \
+            bcftools index -f -c {output.bcf}"""
 
-rule index:
-    input: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf",
-    output: bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi"
-    conda: "../envs/bcftools.yaml"
-    shell: "bcftools index -s -f -c {input.bcf}"
+rule pep:
+    input:
+        manifest='multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv',
+        bcfs=expand('output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES),
+        indexes=expand('output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi', s_studyid=STUDIES, chrom=CHROMOSOMES),
+    output:
+        pep='output_freezes/{s_studyid}/{s_studyid}_freeze.10.pep.yaml',
+        sample_table='output_freezes/{s_studyid}/{s_studyid}_freeze.10.pep.csv'
+    conda: "../envs/pep.yaml"
+    params:
+        chromosomes=CHROMOSOMES,
+        cmdline=CMDLINE,
+        timestamp=TIMESTAMP,
+        reference_genome='GRCh38'
+    script: "../scripts/python/write_pep_files.py"
+
+rule md5sums:
+    input:
+        bcfs=expand('output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES),
+    output:
+        md5sums='output_freezes/{s_studyid}/md5sums.txt',
+    script: "md5sum {input.bcfs} > {output.md5sums}"
 
 rule publish_all:
     input:
-        bcfs=expand(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES),
-        indexes=expand(f'output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi', s_studyid=STUDIES, chrom=CHROMOSOMES),
+        bcfs=expand('output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES),
+        indexes=expand('output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi', s_studyid=STUDIES, chrom=CHROMOSOMES),
 

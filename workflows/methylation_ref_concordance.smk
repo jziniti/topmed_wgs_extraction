@@ -30,7 +30,7 @@ rule convert_to_pedmap:
 
 module methylation_ref_concordance:
     snakefile: "../850K_qc_pipeline/workflows/external-reference-concordance.smk"
-    config: config['GECOPD']
+    config: config[list(config.keys())[0]]
     # config: config
 
 use rule * from methylation_ref_concordance as mrc_* 
