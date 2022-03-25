@@ -18,16 +18,17 @@ SAMPLE_TABLE_COLUMNS = ['sample_name', 'S_SAMPLEID', 'S_SUBJECTID', 'S_STUDYID',
 if __name__ == '__main__':
     with open(snakemake.output.pep, 'w') as pm_file:
         pep_project = {
-          'pep_version': '2.0.0',
-          'sample_table': str(pathlib.Path(snakemake.output.sample_table).name),
-          'chromosomes': list(snakemake.params.chromosomes),
-          'split_by_chromosome': True,
-          'files': list([pathlib.Path(x).name for x in snakemake.input.bcfs]),
-          'cwd': os.getcwd(),
-          'user': getpass.getuser(),
-          'cmdline': snakemake.params.get('cmdline', ''),
-          'timestamp': snakemke.params.get('timestamp', ''),
-          'reference_genome': snakemke.params.get('reference_genome', ''),
+            'pep_version': '2.0.0',
+            'sample_table': str(pathlib.Path(snakemake.output.sample_table).name),
+            'chromosomes': list(snakemake.params.chromosomes),
+            'split_by_chromosome': True,
+            'files': list([pathlib.Path(x).name for x in snakemake.input.bcfs]),
+            'cwd': os.getcwd(),
+            'user': getpass.getuser(),
+            'cmdline': snakemake.params.get('cmdline', ''),
+            'timestamp': snakemake.params.get('timestamp', ''),
+            'reference_genome': snakemake.params.get('reference_genome', ''),
+            'issue_url': snakemake.params.get('issue_url', ''),
         }
         pm_file.write(yaml.dump(pep_project))
 

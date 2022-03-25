@@ -294,8 +294,8 @@ rule convert_and_publish:
         bcf="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf",
         csi="output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf.csi",
     conda: "../envs/bcftools.yaml"
-    shell: """bcftools convert -O b -o {output.bcf} {input.vcf}; \
-            bcftools index -f -c {output.bcf}"""
+    shell: """ bcftools convert -O b -o {output.bcf} {input.vcf}; \
+               bcftools index -f -c {output.bcf}"""
 
 rule pep:
     input:
@@ -310,7 +310,8 @@ rule pep:
         chromosomes=CHROMOSOMES,
         cmdline=CMDLINE,
         timestamp=TIMESTAMP,
-        reference_genome='GRCh38'
+        reference_genome='GRCh38',
+        issue_url=lambda w: config[w.s_studyid]['issue_url'],
     script: "../scripts/python/write_pep_files.py"
 
 rule md5sums:
@@ -318,7 +319,7 @@ rule md5sums:
         bcfs=expand('output_freezes/{s_studyid}/{s_studyid}_freeze.10_chr{chrom}.bcf', s_studyid=STUDIES, chrom=CHROMOSOMES),
     output:
         md5sums='output_freezes/{s_studyid}/md5sums.txt',
-    script: "md5sum {input.bcfs} > {output.md5sums}"
+    shell: "cd output_freezes/{s_studyid}; md5sum *.bcf > md5sums.txt"
 
 rule publish_all:
     input:
