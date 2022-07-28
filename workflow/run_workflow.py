@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+import argparse
+from datetime import date
+#from importlib_resources import as_file, files
+import logging
+import os
+from pathlib import Path
+import sys
+from shutil import copyfile
+import snakemake
+
+VERSION = '2.3'
+PROFILE_NAME = 'cdnm'
+
+def main():
+    logging.basicConfig(level='INFO')
+    LOG = logging.getLogger('civic.run_workflow.main')
+    # LOG.info('civic.run_workflow.main()')
+    
+    base_install_path = Path(os.path.dirname(__file__)) # /'..'
+    base_install_path = base_install_path.absolute()
+    #print(f'Using {base_install_path=}')
+    workflows_path = base_install_path / 'workflows'
+    #profile_dir = base_install_path/'profiles'/PROFILE_NAME 
+
+    #setup argparser to display help if no arguments
+    class MyParser(argparse.ArgumentParser):
+        def error(self, message):
+            sys.stderr.write('error: %s\n' % message)
+            self.print_help()
+            sys.exit(2)
+
+    parser = MyParser(description=f"CIVIC", usage=f"civic --configfile=<configfile>")
+    parser.add_argument('-v', '--version', action='store_true', help="Print CIVIC Version Number")
+    parser.add_argument('--configfile', type=str, help="The configuration file containing the run settings for CIVIC")
+    parser.add_argument('--get-config', action="store_true", help="Get the configuration template for this workflow")
+
+    args = parser.parse_args()
+    
+    ### https://importlib-resources.readthedocs.io/en/latest/using.html
+    #workflow_path = files('workflows').joinpath('civic.smk')
+    workflow_path = workflows_path/'civic.smk'
+    
+    #give config to user if requested
+    if args.version:
+        print(f'{VERSION}')
+        sys.exit()
+    elif args.get_config:
+        cwd = Path(os.getcwd())
+        config_path = base_install_path/'conf/sample.config.dn8.yaml'
+        #config_data = files('conf').joinpath('sample.config.dn8.yaml').read_text()
+        datestamp = date.today().strftime('%Y-%m-%d')
+        dest_path = cwd/f"config-civic-{datestamp}.yaml"
+        LOG.info(f'{config_path=} => {dest_path=}')
+        #with open(dest_path, 'w') as dst:
+        #    dst.write(config_data)
+        copyfile(config_path, dest_path)
+        sys.exit()
+
+    #LOG.info('Running the workflow')
+    snakemake.snakemake(workflow_path,
+                        configfiles=[args.configfile],
+                        use_conda=True,
+                        printshellcmds=True,
+                        cluster="qsub -v PATH -cwd -l lx -terse -S /bin/bash",
+                        latency_wait=120,
+                        conda_prefix="/proj/relibs/relib00/smk-conda-cache/envs/",
+                        printreason=True,
+    )
+
+if __name__ == '__main__':
+    main()
+    

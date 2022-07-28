@@ -1,9 +1,12 @@
 package:
   name: topmed_wgs_extraction
-  version: "0.1.0"
+  version: "1.0"
 
+source:
+  path: workflow
+  
 build:
-  number: 4
+  number: 1
 
 about:
   home: https://changit.bwh.harvard.edu/rejpz/topmed_wgs_extraction
