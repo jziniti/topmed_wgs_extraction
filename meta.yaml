@@ -3,9 +3,10 @@ package:
   version: "1.0"
 
 source:
-  path: workflow
+  path: src
   
 build:
+  script: "python setup.py install"
   number: 1
 
 about:
@@ -13,11 +14,12 @@ about:
   license: GPL
   summary: Freeze.10 extraction and QC
 
+test:
+  commands:
+    - topmed-wgs-extract
+    
 requirements:
+    build:
+      - setuptools
     run:
       - snakemake==6.8.0
-      - 850K_qc_pipeline==0.1
-      - cdnm_gwas_pipeline==0.1
-      - rnaseq_snp_concordance==0.1
-      - topmed_multiomics_qc==0.1
-      - cdnm==0.1
