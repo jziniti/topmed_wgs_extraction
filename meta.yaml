@@ -1,6 +1,8 @@
+{% set data = load_setup_py_data() %}
+
 package:
   name: topmed_wgs_extraction
-  version: "1.0"
+  version: {{ data['version'] }}
 
 source:
   path: src
