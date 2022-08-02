@@ -12,8 +12,10 @@ def package_files(directory):
 
 package_data = package_files('topmed_wgs_extraction/conf') + package_files('topmed_wgs_extraction/rules') + package_files('topmed_wgs_extraction/envs') + package_files('topmed_wgs_extraction/scripts')
 
-VERSION = '1.0'
-
+# VERSION = '1.0'
+with open("VERSION",'r') as vf:
+    VERSION = vf.readline().strip()
+    
 setuptools.setup(
     name="topmed_wgs_extraction",
     version=VERSION,
