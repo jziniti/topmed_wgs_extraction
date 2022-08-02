@@ -10,7 +10,7 @@ from shutil import copyfile
 import snakemake
 
 #VERSION = '2.3'
-with open("../VERSION",'r') as versionFile:
+with open("VERSION",'r') as versionFile:
     VERSION = versionFile.readline().strip()
     
 PROFILE_NAME = 'cdnm'
