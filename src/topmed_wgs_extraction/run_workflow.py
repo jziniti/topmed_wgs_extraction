@@ -10,7 +10,9 @@ from shutil import copyfile
 import snakemake
 
 #VERSION = '2.3'
-with open("VERSION",'r') as versionFile:
+PACKAGE_DIR = Path(os.path.dirname(__file__)).absolute()
+
+with open(PACKAGE_DIR/"VERSION",'r') as versionFile:
     VERSION = versionFile.readline().strip()
     
 PROFILE_NAME = 'cdnm'
@@ -20,10 +22,8 @@ def main():
     LOG = logging.getLogger('topmed_wgs_extraction.run_workflow.main')
     LOG.info('topmed_wgs_extraction.run_workflow.main()')
     
-    base_install_path = Path(os.path.dirname(__file__)) # /'..'
-    base_install_path = base_install_path.absolute()
-    workflows_path = base_install_path/'rules'
-    profile_dir = base_install_path/'profiles'/PROFILE_NAME 
+    workflows_path = PACKAGE_DIR/'rules'
+    profile_dir = PACKAGE_DIR/'profiles'/PROFILE_NAME 
     workflow_path = workflows_path/'pep_extraction_example.smk'
 
     #setup argparser to display help if no arguments
@@ -46,7 +46,7 @@ def main():
         sys.exit()
     elif args.get_config:
         cwd = Path(os.getcwd())
-        config_path = base_install_path/'conf/sample.config.dn8.yaml'
+        config_path = PACKAGE_DIR/'conf/sample.config.dn8.yaml'
         #config_data = files('conf').joinpath('sample.config.dn8.yaml').read_text()
         datestamp = date.today().strftime('%Y-%m-%d')
         dest_path = cwd/f"config-civic-{datestamp}.yaml"

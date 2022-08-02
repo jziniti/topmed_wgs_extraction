@@ -16,7 +16,8 @@ about:
 
 test:
   commands:
-    - topmed-wgs-extract
+    - topmed-wgs-extract --version
+    - topmed-wgs-extract --help
     
 requirements:
     build:

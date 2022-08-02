@@ -12,7 +12,12 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
-package_data = package_files(f'{PACKAGE_NAME}/conf') + package_files(f'{PACKAGE_NAME}/rules') + package_files(f'{PACKAGE_NAME}/envs') + package_files(f'{PACKAGE_NAME}/scripts')
+package_data = package_files(f'{PACKAGE_NAME}/conf') + package_files(f'{PACKAGE_NAME}/rules') + \
+               package_files(f'{PACKAGE_NAME}/envs') + package_files(f'{PACKAGE_NAME}/scripts')
+
+package_data.append(f'../{PACKAGE_NAME}/VERSION')
+
+print(f'{package_data=}')
 
 # VERSION = '1.0'
 with open(f"{PACKAGE_NAME}/VERSION",'r') as vf:
