@@ -1,0 +1,7 @@
+name: topmed_wgs_extraction
+channels:
+  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda-dev-local/rejpz
+  - conda-forge
+  - bioconda
+dependencies:
+  - topmed_wgs_extraction==1.0

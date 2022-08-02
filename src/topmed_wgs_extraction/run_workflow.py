@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-from datetime import date
-#from importlib_resources import as_file, files
+from datetime import date, datetime
 import logging
 import os
 from pathlib import Path
@@ -15,14 +14,14 @@ PROFILE_NAME = 'cdnm'
 
 def main():
     logging.basicConfig(level='INFO')
-    LOG = logging.getLogger('civic.run_workflow.main')
-    # LOG.info('civic.run_workflow.main()')
+    LOG = logging.getLogger('topmed_wgs_extraction.run_workflow.main')
+    LOG.info('topmed_wgs_extraction.run_workflow.main()')
     
     base_install_path = Path(os.path.dirname(__file__)) # /'..'
     base_install_path = base_install_path.absolute()
-    #print(f'Using {base_install_path=}')
-    workflows_path = base_install_path / 'workflows'
-    #profile_dir = base_install_path/'profiles'/PROFILE_NAME 
+    workflows_path = base_install_path/'rules'
+    profile_dir = base_install_path/'profiles'/PROFILE_NAME 
+    workflow_path = workflows_path/'pep_extraction_example.smk'
 
     #setup argparser to display help if no arguments
     class MyParser(argparse.ArgumentParser):
@@ -31,17 +30,13 @@ def main():
             self.print_help()
             sys.exit(2)
 
-    parser = MyParser(description=f"CIVIC", usage=f"civic --configfile=<configfile>")
-    parser.add_argument('-v', '--version', action='store_true', help="Print CIVIC Version Number")
+    parser = MyParser(description=f"Extract TOPMed WGS Data for Downstream Analysis", usage=f"topmed-wgs-extract --configfile=<configfile>")
+    parser.add_argument('-v', '--version', action='store_true', help="Print Version Number")
     parser.add_argument('--configfile', type=str, help="The configuration file containing the run settings for CIVIC")
     parser.add_argument('--get-config', action="store_true", help="Get the configuration template for this workflow")
 
     args = parser.parse_args()
-    
-    ### https://importlib-resources.readthedocs.io/en/latest/using.html
-    #workflow_path = files('workflows').joinpath('civic.smk')
-    workflow_path = workflows_path/'civic.smk'
-    
+        
     #give config to user if requested
     if args.version:
         print(f'{VERSION}')
@@ -59,6 +54,12 @@ def main():
         sys.exit()
 
     #LOG.info('Running the workflow')
+    #workdir
+    #run_id
+    #config-timestamp
+    #stats
+    #summary
+    run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
     snakemake.snakemake(workflow_path,
                         configfiles=[args.configfile],
                         use_conda=True,
@@ -67,6 +68,8 @@ def main():
                         latency_wait=120,
                         conda_prefix="/proj/relibs/relib00/smk-conda-cache/envs/",
                         printreason=True,
+                        nodes=25,
+                        workdir=f'/d/tmp2/log/rejpz/multiomics_qc/{run_id}/',
     )
 
 if __name__ == '__main__':
