@@ -3,6 +3,8 @@
 import os
 import setuptools
 
+PACKAGE_NAME = 'topmed_wgs_extraction'
+
 def package_files(directory):
     paths = []
     for (path, directories, filenames) in os.walk(directory):
@@ -10,14 +12,14 @@ def package_files(directory):
             paths.append(os.path.join('..', path, filename))
     return paths
 
-package_data = package_files('topmed_wgs_extraction/conf') + package_files('topmed_wgs_extraction/rules') + package_files('topmed_wgs_extraction/envs') + package_files('topmed_wgs_extraction/scripts')
+package_data = package_files(f'{PACKAGE_NAME}/conf') + package_files(f'{PACKAGE_NAME}/rules') + package_files(f'{PACKAGE_NAME}/envs') + package_files(f'{PACKAGE_NAME}/scripts')
 
 # VERSION = '1.0'
-with open("VERSION",'r') as vf:
+with open(f"{PACKAGE_NAME}/VERSION",'r') as vf:
     VERSION = vf.readline().strip()
     
 setuptools.setup(
-    name="topmed_wgs_extraction",
+    name=PACKAGE_NAME,
     version=VERSION,
     author="John Ziniti",
     author_email="john.ziniti@channing.harvard.edu",
