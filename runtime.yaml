@@ -4,4 +4,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - topmed_wgs_extraction==1.0.8
+  - topmed_wgs_extraction==1.0.13
