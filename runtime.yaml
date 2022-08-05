@@ -1,6 +1,6 @@
 name: topmed_wgs_extraction
 channels:
-  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda-dev-local/rejpz
+  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda-prod-local/rejpz
   - conda-forge
   - bioconda
 dependencies:

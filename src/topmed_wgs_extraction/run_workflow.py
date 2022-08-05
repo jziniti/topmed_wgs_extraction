@@ -35,11 +35,21 @@ def main():
 
     parser = MyParser(description=f"Extract TOPMed WGS Data for Downstream Analysis", usage=f"topmed-wgs-extract --configfile=<configfile>")
     parser.add_argument('-v', '--version', action='store_true', help="Print Version Number")
-    parser.add_argument('--configfile', type=str, help="The configuration file containing the run settings for CIVIC")
+    parser.add_argument('--configfile', type=str, help="The configuration file containing the run settings")
+    parser.add_argument('--pepfile', type=str, help="The PEP Dataset containing the samples to extract")
+    parser.add_argument('--extract-dir', type=str, help="The directory location to extract the files into")
     parser.add_argument('--get-config', action="store_true", help="Get the configuration template for this workflow")
 
     args = parser.parse_args()
-        
+
+    config = {
+        'pepfile':args.pepfile,
+        'extract_dir': args.extract_dir,
+        }
+    configfiles = []
+    if args.configfile:
+        configfiles.append(args.configfile)
+    
     #give config to user if requested
     if args.version:
         print(f'{VERSION}')
@@ -64,7 +74,8 @@ def main():
     #summary
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
     snakemake.snakemake(workflow_path,
-                        configfiles=[args.configfile],
+                        configfiles=configfiles,
+                        config=config,
                         use_conda=True,
                         printshellcmds=True,
                         cluster="qsub -v PATH -cwd -l lx -terse -S /bin/bash",
