@@ -83,7 +83,7 @@ def main():
                         conda_prefix="/proj/relibs/relib00/smk-conda-cache/envs/",
                         printreason=True,
                         nodes=25,
-                        workdir=f'/d/tmp2/log/rejpz/multiomics_qc/{run_id}/',
+                        workdir=f'/d/tmp2/log/rejpz/topmed_wgs_extraction/{run_id}/',
     )
 
 if __name__ == '__main__':

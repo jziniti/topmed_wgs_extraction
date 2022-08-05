@@ -26,4 +26,4 @@ rule extract:
     conda: "../envs/bcftools.yaml"
     params: samples=SAMPLE_ID_STRING
     # shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -c 1 -O b -m2 -M2 --force-samples --types snps {input.bcf} -o {output.bcf}"
-    shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -O b --force-samples {input.bcf} -o {output.bcf}"
+    shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -c 1 -O b --force-samples {input.bcf} -o {output.bcf}"
