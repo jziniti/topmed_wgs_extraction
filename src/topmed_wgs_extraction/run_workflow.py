@@ -73,6 +73,8 @@ def main():
     #stats
     #summary
     run_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+    workdir = logdir = f'/d/tmp2/log/rejpz/topmed_wgs_extraction/{run_id}/'
+    config['logdir'] = logdir
     snakemake.snakemake(workflow_path,
                         configfiles=configfiles,
                         config=config,
@@ -83,7 +85,7 @@ def main():
                         conda_prefix="/proj/relibs/relib00/smk-conda-cache/envs/",
                         printreason=True,
                         nodes=25,
-                        workdir=f'/d/tmp2/log/rejpz/topmed_wgs_extraction/{run_id}/',
+                        workdir=workdir,
     )
 
 if __name__ == '__main__':

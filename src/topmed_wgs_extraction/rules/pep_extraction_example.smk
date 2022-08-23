@@ -10,6 +10,8 @@ SAMPLE_ID_STRING = ','.join([sample['sample_name'] for sample in pep.samples if 
 
 OUT = pathlib.Path(config.get('extract_dir', '.')).absolute()
 
+LOG_DIR = pathlib.Path(config.get('logdir', './logs/')
+
 ### A default set of targets for Snakemake
 ALL = []
 for filename in RAW_WGS_FILES:
@@ -24,6 +26,6 @@ rule extract:
     output:
         bcf=OUT/"{bcf_name}"
     conda: "../envs/bcftools.yaml"
+    log: LOG_DIR/f'extract.{bcf_name}.log'
     params: samples=SAMPLE_ID_STRING
-    # shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -c 1 -O b -m2 -M2 --force-samples --types snps {input.bcf} -o {output.bcf}"
     shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -c 1 -O b --force-samples {input.bcf} -o {output.bcf}"
