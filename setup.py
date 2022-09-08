@@ -21,7 +21,7 @@ package_data.append(f'../{PACKAGE_NAME}/VERSION')
 #with open(f"{PACKAGE_NAME}/VERSION",'r') as vf:
 #    (major_minor, point, hash) = vf.readline().strip().split('-')
 #    VERSION = f'{major_minor}.{point}'
-    
+
 setuptools.setup(
     name=PACKAGE_NAME,
     version=versioneer.get_version(),
