@@ -45,10 +45,10 @@ rule extract_X:
                           -o {output.bcf}"""
 
 rule extract_XY:
-    input: bcf=RAW_WGS_BASE_PATH/"freeze.10b.chrX.pass_and_fail.gtonly.minDP10.bcf"
-    output: bcf=OUT/"freeze.10b.chrXY.pass_and_fail.gtonly.minDP10.bcf"
+    input: bcf=RAW_WGS_BASE_PATH/"freeze.10a.chrX.pass_and_fail.gtonly.minDP10.bcf"
+    output: bcf=OUT/"freeze.10a.chrXY.pass_and_fail.gtonly.minDP10.bcf"
     conda: "../envs/bcftools.yaml"
-    log: LOG_DIR/'extract.freeze.10b.chrXY.pass_and_fail.gtonly.minDP10.bcf.log'
+    log: LOG_DIR/'extract.freeze.10a.chrXY.pass_and_fail.gtonly.minDP10.bcf.log'
     params:
         samples=SAMPLE_ID_STRING,
         par1_range=PAR1_RANGE,
