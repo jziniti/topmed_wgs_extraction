@@ -2,7 +2,8 @@
 
 import os
 import setuptools
-
+import versioneer
+ 
 PACKAGE_NAME = 'topmed_wgs_extraction'
 
 def package_files(directory):
@@ -17,13 +18,14 @@ package_data = package_files(f'{PACKAGE_NAME}/conf') + package_files(f'{PACKAGE_
 package_data.append(f'../{PACKAGE_NAME}/VERSION')
 
 # VERSION = '1.0'
-with open(f"{PACKAGE_NAME}/VERSION",'r') as vf:
-    (major_minor, point, hash) = vf.readline().strip().split('-')
-    VERSION = f'{major_minor}.{point}'
+#with open(f"{PACKAGE_NAME}/VERSION",'r') as vf:
+#    (major_minor, point, hash) = vf.readline().strip().split('-')
+#    VERSION = f'{major_minor}.{point}'
     
 setuptools.setup(
     name=PACKAGE_NAME,
-    version=VERSION,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="John Ziniti",
     author_email="john.ziniti@channing.harvard.edu",
     description="Code/package for extracting data from TOPMed Freeze10 WGS",
