@@ -28,7 +28,8 @@ rule extract:
     conda: "../envs/bcftools.yaml"
     log: LOG_DIR/'extract.{bcf_name}.log'
     params: samples=SAMPLE_ID_STRING
-    shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -c 1 -O b --force-samples {input.bcf} -o {output.bcf}"
+    shell: "bcftools view -s {params.samples} -i 'FILTER=\"PASS\"' -c 1 --force-samples {input.bcf} \
+            | bcftools annotate --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT' -O b -o {output.bcf}"
 
 rule extract_X:
     input: bcf=RAW_WGS_BASE_PATH/"freeze.10a.chrX.pass_and_fail.gtonly.minDP10.bcf"
@@ -44,9 +45,8 @@ rule extract_X:
                           -s {params.samples} \
                           -i 'FILTER=\"PASS\"' \
                           -c 1 \
-                          -O b \
                           --force-samples \
-                          -o {output.bcf}"""
+              | bcftools annotate --set-id '%CHROM\_%POS\_%REF\_%FIRST_ALT' -O b -o {output.bcf}"""
 
 rule extract_XY:
     input: bcf=RAW_WGS_BASE_PATH/"freeze.10a.chrX.pass_and_fail.gtonly.minDP10.bcf"
