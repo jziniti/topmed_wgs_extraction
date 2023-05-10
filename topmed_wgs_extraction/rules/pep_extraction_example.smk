@@ -20,8 +20,17 @@ for filename in RAW_WGS_FILES:
     if 'chrX' in filename:
         ALL.append(OUT/filename.replace('chrX', 'chrXY'))
 
+wildcard_constraints:
+    bcf_name='\S+.bcf'
+    
 rule all:
     input: ALL
+
+rule index:
+    input: bcf=OUT/"{bcf_name}"
+    output: csi=OUT/"{bcf_name}.csi"
+    conda: "../envs/bcftools.yaml"
+    shell: "bcftools index {input.bcf} --force --csi"
 
 rule extract:
     input: bcf=RAW_WGS_BASE_PATH/"{bcf_name}"
