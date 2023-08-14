@@ -17,8 +17,10 @@ PAR2_RANGE = 'chrX:155701383-156030895'
 ALL = []
 for filename in RAW_WGS_FILES:
     ALL.append(str(OUT/filename))
+    ALL.append(str(OUT/f'{filename}.csi'))
     if 'chrX' in filename:
         ALL.append(OUT/filename.replace('chrX', 'chrXY'))
+        ALL.append(OUT/f"{filename.replace('chrX', 'chrXY')}.csi")
 
 wildcard_constraints:
     bcf_name='\S+.bcf'
@@ -34,7 +36,7 @@ rule index:
 
 rule extract:
     input: bcf=RAW_WGS_BASE_PATH/"{bcf_name}"
-    output: bcf=OUT/"{bcf_name}"
+    output: bcf=OUT/"{bcf_name,\w+.bcf}"
     conda: "../envs/bcftools.yaml"
     log: LOG_DIR/'extract.{bcf_name}.log'
     params: samples=SAMPLE_ID_STRING
