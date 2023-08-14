@@ -7,16 +7,16 @@ TMP = Path('tmp')
 ## rule: input: TARGETS
 
 module multiomics: 
-    snakefile: "../topmed_multiomics_qc/workflows/multiomics_qc.smk"
+    snakefile: "../../../topmed_multiomics_qc/workflows/multiomics_qc.smk"
     config: config
 
 use rule * from multiomics
 
-use rule add_manual_flags from multiomics with:
-    input:
-        manifest=lambda w: f'{TMP}/{w.s_studyid}/MANIFEST.flag_sample_groups.csv'
-    output:
-        df='multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv',
+#use rule add_manual_flags from multiomics with:
+#    input:
+#        manifest=lambda w: f'{TMP}/{w.s_studyid}/ANNOTATED_MANIFEST.flag_sample_groups.csv'
+#    output:
+#        df='multiomics/{s_studyid}/ANNOTATED_MANIFEST.csv',
 
 """
 use rule read_gender_observations from multiomics_gecopd with:
