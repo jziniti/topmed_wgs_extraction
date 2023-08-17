@@ -1,7 +1,7 @@
 import pathlib
 
 pepfile: config['pepfile']
-SAMPLE_TABLE_PATH = config['sample_table']
+SAMPLE_TABLE_PATH = pep.sample_table # config['sample_table']
 RAW_WGS_BASE_PATH = pathlib.Path(pep.config['base_path'])
 RAW_WGS_FILES = pep.config['files']
 SAMPLE_ID_STRING = ','.join([sample['sample_name'] for sample in pep.samples if sample['action'] == 'keep'])
