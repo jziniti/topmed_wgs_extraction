@@ -7,3 +7,7 @@ notebook_logs/
 notebooks/flags
 images
 dist/
+.nextflow.log*
+.nextflow/
+work/
+dag-*.dot
