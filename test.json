@@ -1,3 +1,4 @@
 {
-    "chromosomes": [22]
+    "chromosomes": [22],
+    "samplesFile": "/udd/rejpz/code/topmed_wgs_extraction/nwdids.txt"
 }

@@ -11,3 +11,4 @@ dist/
 .nextflow/
 work/
 dag-*.dot
+dag-*.html

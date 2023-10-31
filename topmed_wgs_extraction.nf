@@ -64,7 +64,7 @@ process index {
     path bcf
     
     output:
-    path "$bcf.csi"
+    path "${bcf}.csi"
     
     """
     bcftools index $bcf --force --csi
