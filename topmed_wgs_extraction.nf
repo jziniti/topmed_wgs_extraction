@@ -74,21 +74,17 @@ process index {
 }
 
 workflow {
+
+    // Prepare the input channels to match the run params
     input_bcf_files = []
     params.chromosomes.each {
         input_bcf_files = input_bcf_files + "${params.basePath}/${params.minDP}/freeze.10a.chr${it}.pass_and_fail.gtonly.${params.minDP}.bcf"
     }
-
-    // chromosomes = Channel.fromPath('/proj/regeps/regep00/studies/TopMed/data/dna/whole_genome/TopMed/data/freezes/freeze.10a/minDP10/*.bcf')
-
     chromosomes = Channel.fromList(params.chromosomes)
     input_bcf_files = Channel.fromList(input_bcf_files)
-    // output_bcf_files = Channel.fromList(output_bcf_files)
     samples_file = Channel.of(params.samplesFile)
 
-    chromosomes.view()
-    input_bcf_files.view()
-
+    // Run the workflow
     extract(chromosomes, input_bcf_files, samples_file)
     index(extract.output)
 }
