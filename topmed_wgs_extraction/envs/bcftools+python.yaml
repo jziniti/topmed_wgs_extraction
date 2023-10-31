@@ -1,9 +1,0 @@
-name: bcftools+tabix+python
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - tabix==0.2.6
-  - bcftools==1.10.2
-  - python>3.0
-  - pandas==2.0.1

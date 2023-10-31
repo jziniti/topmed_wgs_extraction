@@ -1,7 +1,0 @@
-name: cdnm-jupyter-python-3.7.6
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - pandas==1.2.4
-  - pydot==1.4.2

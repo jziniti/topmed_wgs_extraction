@@ -1,7 +1,0 @@
-channels:
-  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - king==2.2.4

@@ -1,8 +1,0 @@
-name: king-similarity-matrix
-channels:
-  - https://chanart.bwh.harvard.edu/artifactory/api/conda/conda-dev-local/rejpz
-  - conda-forge
-  - bioconda
-dependencies:
-  - king-similarity-matrix==1.6.2
-  
