@@ -3,11 +3,11 @@
 ## ⚡Quickstart (In-Development)
 ```
 $ /bin/bash
+$ git clone git@changit.bwh.harvard.edu:rejpz/topmed_wgs_extraction.git
+$ cd topmed_wgs_extraction
+$ git checkout nextflow
 $ source /proj/relibs/relib00/conda-cdnm/bin/activate /udd/rejpz/.conda/envs/nextflow
-$ topmed-wgs-extract --version
-$ topmed-wgs-extract --pepfile=pep.yaml \
-    --extract-dir=/d/tmp/regeps/regep00/studies/COPDGene/analyses/rejpz/
-$ topmed-wgs-extract --configfile=config.yaml
+$ nextflow run topmed_wgs_extraction.nf -params-file test.json
 ```
 
 ## Overview
