@@ -1,3 +1,0 @@
-king_reference: "tmp/IRCALL_annotated_plink_merged_chrpos"
-bam_sample_map: "bam_sample_map.tsv"
-high_speed_mode: True
