@@ -3,7 +3,7 @@
 ## ⚡Quickstart (In-Development)
 ```
 $ /bin/bash
-$ source /proj/relibs/relib00/conda-cdnm/bin/activate topmed_wgs_extraction
+$ source /proj/relibs/relib00/conda-cdnm/bin/activate /udd/rejpz/.conda/envs/nextflow
 $ topmed-wgs-extract --version
 $ topmed-wgs-extract --pepfile=pep.yaml \
     --extract-dir=/d/tmp/regeps/regep00/studies/COPDGene/analyses/rejpz/
@@ -15,42 +15,14 @@ For several important reasons (e.g. need to combine datasets for downstream anal
 
 To this end, the Freeze.10 datasets are being released as a series of PEP datasets and a reproducibility tool that can (optionally) be used to extract the PEP dataset into a working location. [[ The PEP Datasets, Dataset Metadata are contained in a project-level yaml file, and the Sample Metadata are contained in the PEP Sample Table. Sample Metadata include a list of samples that have passed internal QC for a particular study (QC performed by CDNM), and associated metadata from both the Study (Subject Id, Aliases) and the Laboratory (Sample Type, Collection Information). ]]
 
-## Canonical Dataset Locations
-
-| S_STUDYID | PATH |
-|---          |----    |
-| CAMP | `/proj/regeps/regep00/studies/CAMP/data/dna/whole_genome/TopMed/data/canonical/CAMP_freeze.10.pep.yaml` |
-| CRA | `/proj/regeps/regep00/studies/CRA/data/dna/whole_genome/TopMed/data/canonical/CRA_freeze.10.pep.yaml` | 
-| ECLIPSE | `/proj/regeps/regep00/studies/ECLPSE/data/dna/whole_genome/TopMed/data/canonical/ECLIPSE_freeze.10.pep.yaml` |
-| EOCOPD | `/proj/regeps/regep00/studies/EOCOPD/data/dna/whole_genome/TopMed/data/canonical/EOCOPD_freeze.10.pep.yaml` |
-| COPDGene | `/proj/regeps/regep00/studies/GECOPD/data/dna/whole_genome/TopMed/data/canonical/GECOPD_freeze.10.pep.yaml` |
-| LTRC | `/proj/regeps/regep00/studies/LTRC/data/dna/whole_genome/TopMed/data/canonical/LTRC_freeze.10.pep.yaml` | 
-| ICGN/GLAXO | `/proj/regeps/regep00/studies/GLAXO/data/dna/whole_genome/TopMed/data/canonical/GLAXO_freeze.10.pep.yaml` |
-| PLCOPD | `/proj/regeps/regep00/studies/PLCOPD/data/dna/whole_genome/TopMed/data/canonical/PLCOPD_freeze.10.pep.yaml` | 
-
-## Reading the PEP-Formatted Dataset in R
-The PEP Format, The PEP Talk: Portable Encapsulated Projects at the Channing
-
-https://github.com/pepkit/pepr - pepr is not available on anaconda.org, so I packaged it on our local conda repository (https://changit.bwh.harvard.edu/rejpz/conda-pepr). Installing from CRAN should work fine.
-
-```$ /bin/bash
-$ source /proj/relibs/relib00/conda-cdnm/bin/activate
-$ conda activate /udd/rejpz/.conda/envs/pep
-$ R
-library(pepr)
-project = Project('/proj/regeps/regep00/studies/LTRC/data/dna/whole_genome/TopMed/data/canonical/LTRC_freeze.10.pep.yaml')
-sampleTable(project)
-config(project)
-```
-
 ## Configuration Options
 Which samples to extract?
-‼️pepfile
+‼️ pepfile
 
 The path to a valid, relevant PEP file (e.g. one from the table above under Canonical Dataset Locations). By default, the tool with use the “action” column of the SampleTable to extract only those samples with a value of “keep” in this column (override?)
 
 Which directory to extract to?
-‼️extract_dir
+‼️ extract_dir
 
 You are encouraged to extract into the scratch space if you are familiar with its use (and if there is space). Please talk to Bioinformatics if you have not used the scratch space before. Exceptions can be made for data that must sit on the filesystem for an extended period of time.
 

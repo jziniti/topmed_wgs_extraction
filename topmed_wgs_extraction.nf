@@ -14,6 +14,7 @@ PAR2_RANGE = "chrX:155701383-156030895"
 
 process extract {
     conda "topmed_wgs_extraction/envs/bcftools.yaml"
+    publishDir params.outputDir, mode: "copy"
 
     input:
     val chrom
@@ -59,6 +60,7 @@ process extract {
 
 process index {
     conda "topmed_wgs_extraction/envs/bcftools.yaml"
+    publishDir params.outputDir, mode: "copy"
 
     input:
     path bcf
